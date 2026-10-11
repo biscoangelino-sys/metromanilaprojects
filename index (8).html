@@ -38,18 +38,15 @@ h1 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: c
 .tab[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 @media (max-width: 640px) { .tabs { width: 100%; } .tab { flex: 1; min-height: 48px; justify-content: center; padding: 10px 8px; font-size: 14px; } }
 main { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-.panel { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.panel { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 16px; min-width: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
 @media (max-width: 640px) { .panel { padding: 16px; border-radius: 12px; } }
 fieldset { border: 0; margin: 0; padding: 0; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
-legend { font-weight: 600; padding: 0; margin: 0 0 4px; color: var(--ink); }
-label { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+legend { font-weight: 600; padding: 0; margin: 0 0 4px; color: var(--ink); font-size: 16px; letter-spacing: 0.02em; }
+label { display: flex; flex-direction: column; gap: 4px; min-width: 0; cursor: pointer; }
 input, textarea, select { font: inherit; background: var(--paper); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; min-height: 44px; font-size: 16px; }
 textarea { resize: vertical; padding: 12px; }
 input:focus, textarea:focus, select:focus { outline: 0; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
-@media (max-width: 640px) {
-  input, textarea, select { font-size: 16px; min-height: 48px; padding: 12px; }
-  textarea { min-height: 120px; }
-}
+@media (max-width: 640px) { input, textarea, select { font-size: 16px; min-height: 48px; padding: 12px; } textarea { min-height: 120px; } }
 .row { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; }
 .row > * { flex: 1; min-width: 240px; }
 .btn { font: inherit; font-weight: 600; background: var(--accent); color: var(--accent-ink); border: 1px solid var(--accent); border-radius: 6px; padding: 10px 20px; cursor: pointer; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
@@ -70,17 +67,9 @@ table { width: 100%; border-collapse: collapse; font-size: 14px; }
 table th { text-align: left; padding: 12px; border-bottom: 2px solid var(--line); font-weight: 600; background: var(--accent-soft); }
 table td { padding: 12px; border-bottom: 1px solid var(--line); }
 table tr:hover { background: var(--accent-soft); }
-.file-item { padding: 8px; margin: 4px 0; background: var(--ok-soft); border-radius: 4px; font-size: 13px; }
-.btn:active { transform: scale(0.98); }
-input:disabled, textarea:disabled, select:disabled { opacity: 0.7; background: var(--line); }
-label { cursor: pointer; display: block; }
-.panel { box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-legend { font-size: 16px; letter-spacing: 0.02em; }
 input[type="file"] { cursor: pointer; }
 input[type="file"]::file-selector-button { font-size: 14px; padding: 8px 12px; }
-@media (max-width: 640px) {
-  input[type="file"]::file-selector-button { padding: 10px 16px; font-size: 15px; }
-}
+@media (max-width: 640px) { input[type="file"]::file-selector-button { padding: 10px 16px; font-size: 15px; } }
 </style>
 </head>
 <body>
@@ -159,8 +148,8 @@ input[type="file"]::file-selector-button { font-size: 14px; padding: 8px 12px; }
         <legend>Email Draft Preview</legend>
         <div style="background:var(--accent-soft);border:1px solid var(--line);border-radius:6px;padding:16px;font-family:var(--font-mono);font-size:13px;overflow-x:auto;">
           <div style="margin-bottom:12px;"><strong>To:</strong> <span id="draftRecipient">-</span></div>
-          <div style="margin-bottom:12px;"><strong>Subject:</strong> Project Work Submission - <span id="draftProject">-</span></div>
-          <div style="border-top:1px solid var(--line);padding-top:12px;white-space:pre-wrap;">
+          <div style="margin-bottom:12px;"><strong>Subject:</strong> <span id="draftProject">-</span></div>
+          <div style="border-top:1px solid var(--line);padding-top:12px;white-space:pre-wrap;max-height:200px;overflow-y:auto;">
             <span id="draftBody"></span>
           </div>
         </div>
@@ -210,8 +199,7 @@ input[type="file"]::file-selector-button { font-size: 14px; padding: 8px 12px; }
 const SHEET_ID = "1l9sWCZIqkGNX44dmSrVCdXZTxXgm8NpokmJloJRVPSA";
 const LOCATION_GID = 0;
 const VENDOR_GID = 1684910670;
-const FORMSPREE_URL = "https://formspree.io/f/xyekjlkl";
-const FORMSPREE_AJAX_URL = "https://formspree.io/f/xyekjlkl"; // CORS-friendly endpoint
+const SENDGRID_FUNCTION = "/.netlify/functions/send-email";
 const SETTINGS_PASSCODE = "petron2026";
 
 const norm = str => String(str || "").toLowerCase().replace(/[^a-z0-9]/g, "").substring(0, 20);
@@ -251,21 +239,14 @@ function parseCSVLine(line) {
 async function loadGoogleSheet(gid) {
   try {
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
-    console.log("📥 Loading sheet gid=" + gid + " from:", url);
+    console.log("📥 Loading sheet gid=" + gid);
     const response = await fetch(url);
     if (!response.ok) throw new Error("HTTP " + response.status);
     const csv = await response.text();
-    console.log("CSV received, length:", csv.length);
-    console.log("RAW CSV (first 500 chars):", csv.substring(0, 500));
     const lines = csv.split("\n").filter(line => line.trim());
-    console.log("Found " + lines.length + " non-empty lines");
-    if (lines.length < 2) throw new Error("Sheet is empty or has no data rows");
+    if (lines.length < 2) throw new Error("Sheet is empty");
 
     const headers = parseCSVLine(lines[0]);
-    console.log("Headers parsed:", headers);
-    console.log("Header count:", headers.length);
-    headers.forEach((h, i) => console.log("  [" + i + "]:", JSON.stringify(h)));
-
     const data = [];
     for (let i = 1; i < lines.length; i++) {
       const values = parseCSVLine(lines[i]);
@@ -276,9 +257,6 @@ async function loadGoogleSheet(gid) {
       data.push(row);
     }
     console.log("✅ Loaded " + data.length + " rows from gid=" + gid);
-    if (data.length > 0) {
-      console.log("First row sample:", JSON.stringify(data[0]));
-    }
     return { headers, data };
   } catch (e) {
     console.error("❌ Error loading sheet gid=" + gid + ":", e);
@@ -287,8 +265,7 @@ async function loadGoogleSheet(gid) {
 }
 
 function parseLocationRow(row) {
-  // Use exact column names from your sheet
-  const result = {
+  return {
     c: row["Location code"] || "",
     d: row["Dealer Name"] || "",
     a: row["Address"] || "",
@@ -298,51 +275,25 @@ function parseLocationRow(row) {
     ase: row["Area Sales Executive"] || "",
     sr: row["Sales Route"] || ""
   };
-
-  if (result.c) {
-    console.log("✅ Location row parsed:", result.c, "ASE:", result.ase, "AEE:", result.aee);
-  }
-
-  return result;
 }
 
 function parseVendorRow(row) {
-  // Use exact column names from your sheet
-  const result = {
+  return {
     c: row["Vendor"] || "",
     co: row["Company Name"] || "",
     em: row["Email"] || ""
   };
-
-  if (result.c) {
-    console.log("✅ Vendor row parsed:", result.c, "Company:", result.co, "Email:", result.em);
-  }
-
-  return result;
 }
 
 async function initializeDatabases() {
   console.log("📥 Loading databases...");
-
   const locSheet = await loadGoogleSheet(LOCATION_GID);
-  console.log("Location sheet raw data rows:", locSheet.data.length);
   S.locations = locSheet.data.map(parseLocationRow).filter(r => r.c);
   console.log("✅ Loaded", S.locations.length, "locations");
 
   const venSheet = await loadGoogleSheet(VENDOR_GID);
-  console.log("Vendor sheet raw data rows:", venSheet.data.length);
-  console.log("Vendor sheet headers:", venSheet.headers);
-  console.log("First vendor row raw:", JSON.stringify(venSheet.data[0]));
-
-  console.log("=== PARSING VENDOR ROWS ===");
-  S.vendors = venSheet.data.map((row, idx) => {
-    const parsed = parseVendorRow(row);
-    console.log("Row " + idx + ":", JSON.stringify(row), "→ Parsed:", parsed);
-    return parsed;
-  }).filter(r => r.c);
-
-  console.log("✅ Loaded", S.vendors.length, "vendors after filtering");
-  console.log("All vendors:", JSON.stringify(S.vendors));
+  S.vendors = venSheet.data.map(parseVendorRow).filter(r => r.c);
+  console.log("✅ Loaded", S.vendors.length, "vendors");
 
   S.locMeta = { count: S.locations.length, loaded: new Date() };
   S.venMeta = { count: S.vendors.length, loaded: new Date() };
@@ -384,7 +335,7 @@ function setAuto(row) {
   $("address").value = row.a;
   $("customerNo").value = row.n;
   $("areaEngineer").value = row.ae;
-  $("areaSalesExec").value = row.ase;
+  $("areaSalesExec").value = row.aee;
   $("salesRoute").value = row.sr;
   $("recipient").value = row.aee;
 }
@@ -406,7 +357,6 @@ async function lookup(code) {
     setAuto(null);
     return;
   }
-  S.loc = { status: "loading" };
   const row = S.locations.find(r => norm(r.c) === key);
   if (row) {
     console.log("✅ Location found:", key);
@@ -425,27 +375,12 @@ async function lookup(code) {
 
 async function venLookup(code) {
   const key = norm(code);
-  console.log("🔍 Vendor lookup for:", JSON.stringify(code), "normalized:", JSON.stringify(key));
-
   if (!key) {
     S.ven = { status: "idle" };
     setContractor(null);
     return;
   }
-
-  S.ven = { status: "loading" };
-  console.log("Available vendors to search:", S.vendors.length);
-  if (S.vendors.length > 0) {
-    console.log("First vendor code:", JSON.stringify(S.vendors[0].c), "normalized:", JSON.stringify(norm(S.vendors[0].c)));
-  }
-
-  const row = S.vendors.find(r => {
-    const rKey = norm(r.c);
-    const match = rKey === key;
-    console.log("  Checking:", JSON.stringify(r.c), "→", JSON.stringify(rKey), "===", JSON.stringify(key), "?", match);
-    return match;
-  });
-
+  const row = S.vendors.find(r => norm(r.c) === key);
   if (row) {
     console.log("✅ Vendor found:", key);
     S.ven = { status: "found", row };
@@ -465,7 +400,6 @@ let locTimer;
 const locCodeEl = $("locationCode");
 if (locCodeEl) {
   locCodeEl.addEventListener("input", function () {
-    S.loc = { status: "pending" };
     clearTimeout(locTimer);
     locTimer = setTimeout(() => lookup($("locationCode").value), 350);
   });
@@ -475,7 +409,6 @@ let venTimer;
 const venCodeEl = $("vendorCode");
 if (venCodeEl) {
   venCodeEl.addEventListener("input", function () {
-    S.ven = { status: "pending" };
     clearTimeout(venTimer);
     venTimer = setTimeout(() => venLookup($("vendorCode").value), 350);
   });
@@ -495,7 +428,6 @@ function renderFileList() {
     { file: S.fileBefore, label: "📸 Before Photo" },
     { file: S.fileAfter, label: "✅ After Photo" }
   ];
-
   const hasFiles = files.some(f => f.file);
   if (!hasFiles) return;
 
@@ -507,7 +439,6 @@ function renderFileList() {
   div.appendChild(title);
   const ul = document.createElement("ul");
   ul.style.cssText = "margin:8px 0;padding-left:20px;";
-
   files.forEach(({ file, label }) => {
     if (file) {
       const li = document.createElement("li");
@@ -515,7 +446,6 @@ function renderFileList() {
       ul.appendChild(li);
     }
   });
-
   div.appendChild(ul);
   list.appendChild(div);
 }
@@ -527,55 +457,14 @@ function updateEmailDraft() {
   const dealer = $("dealer").value || "N/A";
   const address = $("address").value || "N/A";
   const workOrderNumber = $("workOrderNumber").value || "N/A";
-  const customerNo = $("customerNo").value || "N/A";
-  const areaEngineer = $("areaEngineer").value || "N/A";
-  const areaSalesExec = $("areaSalesExec").value || "N/A";
-  const salesRoute = $("salesRoute").value || "N/A";
-  const vendorCode = $("vendorCode").value || "N/A";
-  const vendorCompany = $("vendorCompany").value || "N/A";
-  const vendorEmail = $("vendorEmail").value || "N/A";
-  const completedDate = $("completedDate").value || "N/A";
-  const desc = $("desc").value || "N/A";
-
-  const filesCount = [S.fileWO, S.fileBefore, S.fileAfter].filter(f => f).length;
-  const fileInfo = [];
-  if (S.fileWO) fileInfo.push("📋 Signed WO Form: " + S.fileWO.name);
-  if (S.fileBefore) fileInfo.push("📸 Before Photo: " + S.fileBefore.name);
-  if (S.fileAfter) fileInfo.push("✅ After Photo: " + S.fileAfter.name);
+  const subject = "WO: " + workOrderNumber + " | Loc: " + locationCode + " | Project: " + project + " | Dealer: " + dealer + " | Address: " + address;
 
   $("draftRecipient").textContent = recipient;
-
-  // Build the actual subject line that will be sent
-  const subject = "WO: " + workOrderNumber + " | Loc: " + locationCode + " | Project: " + project + " | Dealer: " + dealer + " | Address: " + address;
   $("draftProject").textContent = subject;
 
-  const body = `Project Location:
-Location Code: ${locationCode}
-Dealer Name: ${dealer}
-Address: ${address}
-Customer Number: ${customerNo}
-Area Engineer: ${areaEngineer}
-Area Sales Executive: ${areaSalesExec}
-Sales Route: ${salesRoute}
-
-Contractor Info:
-Vendor Code: ${vendorCode}
-Company: ${vendorCompany}
-Email: ${vendorEmail}
-
-Work Details:
-Work Order Number: ${workOrderNumber}
-Project: ${project}
-Completed Date: ${completedDate}
-Description:
-${desc}
-
-Files: ${filesCount}
-${fileInfo.length > 0 ? fileInfo.join('\n') : 'None'}
-
----
-Note: Photos are embedded in the HTML email and will appear in the recipient's email client.`;
-
+  const desc = $("desc").value || "[No description]";
+  const filesCount = [S.fileWO, S.fileBefore, S.fileAfter].filter(f => f).length;
+  const body = `Project: ${project}\nLocation: ${locationCode} (${dealer})\nCompleted: ${$("completedDate").value || "N/A"}\nFiles: ${filesCount}\n\n${desc}`;
   $("draftBody").textContent = body;
 }
 
@@ -621,18 +510,8 @@ if (fileAfterEl) {
 });
 
 $("submitBtn").addEventListener("click", async function (e) {
-  console.log("🖱️ SUBMIT BUTTON CLICKED!");
-  console.log("Button element:", $("submitBtn"));
-
   e.preventDefault();
-  e.stopPropagation();
-
   const msg = $("submitMsg");
-  if (!msg) {
-    console.error("❌ submitMsg element not found!");
-    alert("Error: Form element missing. Reload page.");
-    return;
-  }
 
   const fields = {
     _to: $("recipient").value,
@@ -653,41 +532,25 @@ $("submitBtn").addEventListener("click", async function (e) {
     desc: $("desc").value
   };
 
-  console.log("📋 FORM DATA CAPTURED:");
-  console.log("  Project:", fields.project);
-  console.log("  Description:", fields.desc.substring(0, 50) + "...");
-  console.log("  Completion Date:", fields.completedDate);
-  console.log("  Recipient Email:", fields._to);
-  console.log("  Location Code:", fields.locationCode);
-
   const missing = [];
   if (!fields.project) missing.push("Project");
   if (!fields.desc) missing.push("Work description");
   if (!fields.completedDate) missing.push("Completion date");
-  if (!fields._to) missing.push("Recipient email (lookup location code first)");
+  if (!fields._to) missing.push("Recipient email");
 
   if (missing.length) {
-    console.warn("⚠️ MISSING REQUIRED FIELDS:", missing);
     showMsg(msg, "bad", "❌ Missing: " + missing.join(", "));
     return;
   }
 
-  console.log("✅ All required fields present. Starting submission...");
-  showMsg(msg, "ok", "⏳ Sending...");
+  console.log("📋 Submitting form...");
+  showMsg(msg, "ok", "⏳ Processing files...");
   $("submitBtn").disabled = true;
 
   try {
-    console.log("📂 Processing files...");
-    console.log("  File WO:", S.fileWO ? S.fileWO.name : "None");
-    console.log("  File Before:", S.fileBefore ? S.fileBefore.name : "None");
-    console.log("  File After:", S.fileAfter ? S.fileAfter.name : "None");
-    showMsg(msg, "ok", "📂 Building email...");
-
     const subject = "WO: " + fields.workOrderNumber + " | Loc: " + fields.locationCode + " | Project: " + fields.project + " | Dealer: " + fields.dealer + " | Address: " + fields.address;
-    console.log("📬 EMAIL SUBJECT:", subject);
-    console.log("📮 EMAIL TO:", fields._to);
 
-    // Process files and embed as base64
+    // Process files as base64
     const fileEmbeds = [];
     const filesByLabel = [
       { file: S.fileWO, label: "📋 Signed WO Form" },
@@ -702,7 +565,6 @@ $("submitBtn").addEventListener("click", async function (e) {
           reader.onload = function (e) {
             const dataURL = e.target.result;
             fileEmbeds.push({ label, dataURL, name: file.name, isImage: file.type.startsWith("image/") });
-            console.log("✅ File ready to embed:", label, file.name);
             resolve();
           };
           reader.readAsDataURL(file);
@@ -711,76 +573,93 @@ $("submitBtn").addEventListener("click", async function (e) {
     }
 
     // Build HTML email with embedded images
-    let htmlEmail = `<html><head><meta charset="utf-8"><style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;margin:0;padding:0;background:#f5f5f5}.wrapper{max-width:600px;margin:20px auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1)}.header{background:linear-gradient(135deg,#d94040,#c03030);color:#fff;padding:30px;text-align:center}.header h1{margin:0;font-size:24px;font-weight:bold}.body{padding:30px;color:#333;line-height:1.6}.section{margin:25px 0}.section-title{font-size:14px;font-weight:bold;color:#d94040;text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid #d94040;padding-bottom:10px;margin-bottom:15px}.data-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.data-item{font-size:13px}.data-label{color:#666;font-weight:600;display:block;margin-bottom:2px}.data-value{color:#333}.description-box{background:#f9f9f9;border-left:4px solid #d94040;padding:15px;border-radius:4px;font-size:14px;margin:15px 0}.files-section{background:#f0f8f3;border-left:4px solid #5ba566;padding:15px;border-radius:4px;margin:20px 0}.files-section h4{margin:0 0 12px;color:#5ba566;font-size:14px}.photo-container{margin:20px 0}.photo-label{font-weight:bold;color:#d94040;font-size:13px;margin:15px 0 8px;display:block}.photo-img{max-width:100%;border-radius:6px;border:1px solid #ddd;display:block;margin:10px 0}.pdf-link{display:inline-block;background:#d94040;color:#fff;padding:8px 12px;border-radius:4px;text-decoration:none;font-size:13px}.footer{background:#f5f5f5;padding:20px;text-align:center;border-top:1px solid #eee;font-size:12px;color:#999}@media(max-width:600px){.data-grid{grid-template-columns:1fr}.body{padding:20px}.photo-img{max-width:100%}}</style></head><body><div class="wrapper"><div class="header"><h1>📧 Project Work Submission</h1><p>${fields.project}</p></div><div class="body"><div class="section"><div class="section-title">📍 PROJECT LOCATION</div><div class="data-grid"><div class="data-item"><span class="data-label">Location Code</span><span class="data-value">${fields.locationCode}</span></div><div class="data-item"><span class="data-label">Dealer Name</span><span class="data-value">${fields.dealer}</span></div><div class="data-item"><span class="data-label">Address</span><span class="data-value">${fields.address}</span></div><div class="data-item"><span class="data-label">Customer #</span><span class="data-value">${fields.customerNo}</span></div><div class="data-item"><span class="data-label">Area Engineer</span><span class="data-value">${fields.areaEngineer}</span></div><div class="data-item"><span class="data-label">Area Sales Exec</span><span class="data-value">${fields.areaSalesExec}</span></div><div class="data-item"><span class="data-label">Sales Route</span><span class="data-value">${fields.salesRoute}</span></div></div></div><hr style="border:none;border-top:1px solid #eee;margin:20px 0"><div class="section"><div class="section-title">👷 CONTRACTOR INFO</div><div class="data-grid"><div class="data-item"><span class="data-label">Vendor Code</span><span class="data-value">${fields.vendorCode}</span></div><div class="data-item"><span class="data-label">Company</span><span class="data-value">${fields.vendorCompany}</span></div><div class="data-item"><span class="data-label">Contact Email</span><span class="data-value">${fields.vendorEmail}</span></div></div></div><hr style="border:none;border-top:1px solid #eee;margin:20px 0"><div class="section"><div class="section-title">🔧 WORK DETAILS</div><div class="data-grid"><div class="data-item"><span class="data-label">Work Order #</span><span class="data-value">${fields.workOrderNumber}</span></div><div class="data-item"><span class="data-label">Completed Date</span><span class="data-value">${fields.completedDate}</span></div></div></div><div class="description-box"><strong>📝 Work Description</strong><br><br>${fields.desc.replace(/\n/g, "<br>")}</div><hr style="border:none;border-top:1px solid #eee;margin:20px 0"><div class="files-section"><h4>📎 Attached Files & Photos</h4>`;
+    let htmlEmail = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 0; }
+    .wrapper { max-width: 600px; margin: 20px auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .header { background: linear-gradient(135deg, #d94040, #c03030); color: #fff; padding: 30px; text-align: center; }
+    .header h1 { margin: 0; font-size: 24px; }
+    .body { padding: 30px; color: #333; line-height: 1.6; }
+    .section { margin: 25px 0; }
+    .section-title { font-size: 13px; font-weight: bold; color: #d94040; text-transform: uppercase; border-bottom: 2px solid #d94040; padding-bottom: 10px; margin-bottom: 15px; }
+    .data-row { margin: 8px 0; }
+    .data-label { font-weight: 600; color: #666; }
+    .description-box { background: #f9f9f9; border-left: 4px solid #d94040; padding: 15px; margin: 15px 0; white-space: pre-wrap; font-size: 14px; }
+    .files-section { background: #f0f8f3; border-left: 4px solid #5ba566; padding: 15px; margin: 20px 0; }
+    .photo-container { margin: 20px 0; }
+    .photo-label { font-weight: bold; color: #d94040; font-size: 13px; margin: 15px 0 8px; }
+    .photo-img { max-width: 100%; border-radius: 6px; border: 1px solid #ddd; margin: 10px 0; }
+    .footer { background: #f5f5f5; padding: 20px; text-align: center; border-top: 1px solid #eee; font-size: 12px; color: #999; }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="header">
+    <h1>Project Work Submission</h1>
+    <p>${fields.project}</p>
+  </div>
+  <div class="body">
+    <div class="section">
+      <div class="section-title">PROJECT LOCATION</div>
+      <div class="data-row"><span class="data-label">Location:</span> ${fields.locationCode} - ${fields.dealer}</div>
+      <div class="data-row"><span class="data-label">Address:</span> ${fields.address}</div>
+      <div class="data-row"><span class="data-label">Engineer:</span> ${fields.areaEngineer}</div>
+    </div>
+    <div class="section">
+      <div class="section-title">CONTRACTOR</div>
+      <div class="data-row"><span class="data-label">Vendor:</span> ${fields.vendorCode} - ${fields.vendorCompany}</div>
+      <div class="data-row"><span class="data-label">Email:</span> ${fields.vendorEmail}</div>
+    </div>
+    <div class="section">
+      <div class="section-title">WORK DETAILS</div>
+      <div class="data-row"><span class="data-label">WO #:</span> ${fields.workOrderNumber}</div>
+      <div class="data-row"><span class="data-label">Completed:</span> ${fields.completedDate}</div>
+    </div>
+    <div class="description-box"><strong>Work Description</strong>\n\n${fields.desc.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+    <div class="files-section">
+      <strong>Attached Files</strong>`;
 
     fileEmbeds.forEach(({ label, dataURL, name, isImage }) => {
       if (isImage) {
-        htmlEmail += `<div class="photo-container"><span class="photo-label">${label}</span><img src="${dataURL}" class="photo-img" alt="${name}"></div>`;
+        htmlEmail += `<div class="photo-container"><div class="photo-label">${label}</div><img src="${dataURL}" class="photo-img" alt="${name}"></div>`;
       } else {
-        htmlEmail += `<div class="photo-container"><span class="photo-label">${label}</span><a href="${dataURL}" class="pdf-link">📄 ${name}</a></div>`;
+        htmlEmail += `<div class="photo-container"><div class="photo-label">${label}: ${name}</div></div>`;
       }
     });
 
-    htmlEmail += `</div></div><div class="footer">Metro Manila Project Forms System • Automated Submission</div></div></body></html>`;
+    htmlEmail += `
+    </div>
+  </div>
+  <div class="footer">Metro Manila Project Forms | ${new Date().toLocaleString()}</div>
+</div>
+</body>
+</html>`;
 
-    console.log("✅ HTML Email built with embedded files, length:", htmlEmail.length);
-    showMsg(msg, "ok", "📧 Sending email...");
-    console.log("🌐 FORMSPREE ENDPOINT:", FORMSPREE_URL);
+    showMsg(msg, "ok", "📧 Sending via SendGrid...");
 
-    // Use HTML email with base64 embedded images
-    const emailPayload = {
-      "_to": fields._to,
-      "_subject": subject,
-      "_html": htmlEmail,
-      "_replyto": fields.vendorEmail,
-      "locationCode": fields.locationCode,
-      "dealer": fields.dealer,
-      "project": fields.project,
-      "completedDate": fields.completedDate
-    };
+    // Send to Netlify Function
+    const response = await fetch(SENDGRID_FUNCTION, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        to: fields._to,
+        subject: subject,
+        htmlContent: htmlEmail,
+        replyTo: fields.vendorEmail
+      })
+    });
 
-    console.log("📦 Email payload size:", JSON.stringify(emailPayload).length, "bytes");
-
-    console.log("📤 Sending to Formspree via JSON...");
-    let response;
-    try {
-      response = await fetch(FORMSPREE_AJAX_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
-        body: JSON.stringify(emailPayload)
-      });
-    } catch (fetchErr) {
-      console.error("❌ FETCH ERROR (Network):", fetchErr.message);
-      console.error("This might be due to CORS restrictions. Trying alternative method...");
-
-      // Fallback: Show success message as form was properly filled
-      console.warn("⚠️ Could not verify email send, but form data was valid");
-      showMsg(msg, "ok", "✅ Form submitted! (Email delivery will be processed)");
-      throw new Error("Network error: " + fetchErr.message);
+    if (!response.ok) {
+      const errData = await response.json();
+      throw new Error(errData.error || "Email service error");
     }
 
-    console.log("📨 Response status:", response.status);
-    console.log("📨 Response headers:", response.headers);
-    let responseData;
-    try {
-      responseData = await response.json();
-      console.log("📨 Response (JSON):", responseData);
-    } catch (e) {
-      const responseText = await response.text();
-      console.log("📨 Response (Text):", responseText.substring(0, 200));
-      responseData = { status: response.status, body: responseText };
-    }
-
-    // Formspree returns 200 for success
-    if (!response.ok && response.status !== 200) {
-      console.error("❌ SERVER ERROR:", response.status, responseData);
-      throw new Error("Server error: " + response.status);
-    }
-
-    console.log("✅ Response received from Formspree");
+    const result = await response.json();
+    console.log("✅ Email sent!");
 
     const submission = {
       id: "SUB-" + Date.now(),
@@ -788,31 +667,16 @@ $("submitBtn").addEventListener("click", async function (e) {
       project: fields.project,
       locationCode: fields.locationCode,
       dealer: fields.dealer,
-      files: [S.fileWO, S.fileBefore, S.fileAfter].filter(f => f).length
+      files: fileEmbeds.length
     };
     S.submissions.push(submission);
-    try {
-      localStorage.setItem("contractor-submissions", JSON.stringify(S.submissions));
-    } catch (e) {
-      console.warn("Could not save to localStorage");
-    }
+    localStorage.setItem("contractor-submissions", JSON.stringify(S.submissions));
 
-    console.log("✅ EMAIL SENT SUCCESSFULLY!");
-    showMsg(msg, "ok", "✅ Email sent to " + fields._to + "! Submission saved.");
+    showMsg(msg, "ok", "✅ Email sent to " + fields._to + "!");
 
     // Clear form
-    console.log("🧹 Clearing form...");
     $("locationCode").value = "";
-    $("dealer").value = "";
-    $("address").value = "";
-    $("customerNo").value = "";
-    $("areaEngineer").value = "";
-    $("areaSalesExec").value = "";
-    $("salesRoute").value = "";
-    $("recipient").value = "";
     $("vendorCode").value = "";
-    $("vendorCompany").value = "";
-    $("vendorEmail").value = "";
     $("workOrderNumber").value = "";
     $("project").value = "";
     $("completedDate").value = "";
@@ -826,13 +690,14 @@ $("submitBtn").addEventListener("click", async function (e) {
     $("fileWOStatus").textContent = "";
     $("fileBeforeStatus").textContent = "";
     $("fileAfterStatus").textContent = "";
+    setAuto(null);
+    setContractor(null);
     renderFileList();
     updateEmailDraft();
-    console.log("✅ Form cleared and ready for next submission");
+
   } catch (e) {
-    console.error("❌ SUBMISSION ERROR:", e);
-    console.error("Stack:", e.stack);
-    showMsg(msg, "bad", "❌ Error: " + e.message + " (Check browser console for details)");
+    console.error("❌ Error:", e);
+    showMsg(msg, "bad", "❌ Error: " + e.message);
   } finally {
     $("submitBtn").disabled = false;
   }
@@ -844,13 +709,12 @@ function renderInbox() {
     const saved = localStorage.getItem("contractor-submissions");
     S.submissions = saved ? JSON.parse(saved) : [];
   } catch (e) {
-    console.warn("Could not load submissions");
     S.submissions = [];
   }
 
   list.textContent = "";
   if (!S.submissions || S.submissions.length === 0) {
-    list.innerHTML = '<div class="msg warn">No submissions yet. Submit a form to see it here.</div>';
+    list.innerHTML = '<div class="msg warn">No submissions yet.</div>';
     return;
   }
 
@@ -866,10 +730,8 @@ function renderInbox() {
   const tbody = table.createTBody();
   S.submissions.forEach(sub => {
     const row = tbody.insertRow();
-    const cells = [sub.date, sub.project, sub.locationCode, sub.dealer, sub.files + " file(s)"];
-    cells.forEach(text => {
-      const td = row.insertCell();
-      td.textContent = text;
+    [sub.date, sub.project, sub.locationCode, sub.dealer, sub.files + " file(s)"].forEach(text => {
+      row.insertCell().textContent = text;
     });
   });
 
@@ -877,14 +739,10 @@ function renderInbox() {
 }
 
 $("unlockBtn").addEventListener("click", async function () {
-  const pass = $("settingsPass").value;
-  if (pass === SETTINGS_PASSCODE) {
-    document.querySelector('input[id="settingsPass"]').parentElement.parentElement.hidden = true;
+  if ($("settingsPass").value === SETTINGS_PASSCODE) {
+    $("settingsPass").parentElement.parentElement.hidden = true;
     $("settingsPanel").hidden = false;
-    $("refreshBtn").disabled = true;
-    showMsg($("locStatus2"), "ok", "⏳ Loading data...");
     await initializeDatabases();
-    $("refreshBtn").disabled = false;
   } else {
     showMsg($("settingsPass"), "bad", "❌ Incorrect passcode");
   }
@@ -907,15 +765,12 @@ $("refreshBtn").addEventListener("click", async function () {
         viewEl.hidden = false;
         document.querySelectorAll(".tab").forEach(el => el.setAttribute("aria-selected", "false"));
         $(tabId).setAttribute("aria-selected", "true");
-        if (tabId === "tab-inbox") {
-          renderInbox();
-        }
+        if (tabId === "tab-inbox") renderInbox();
       }
     });
   }
 });
 
-// Initialize form on page load
 window.addEventListener("DOMContentLoaded", async function () {
   try {
     console.log("🚀 Initializing form...");
@@ -925,7 +780,7 @@ window.addEventListener("DOMContentLoaded", async function () {
     renderFileList();
   } catch (err) {
     console.error("❌ Failed to initialize:", err);
-    showMsg($("submitMsg"), "bad", "⚠️ Failed to load data. Please refresh the page.");
+    showMsg($("submitMsg"), "bad", "⚠️ Failed to load data.");
   }
 });
 </script>
