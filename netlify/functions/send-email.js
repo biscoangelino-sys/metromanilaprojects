@@ -43,7 +43,7 @@ exports.handler = async (event) => {
         }
       ],
       from: {
-        email: 'noreply@metromanilaprojects.com',
+        email: 'biscoangelino@gmail.com',
         name: 'Metro Manila Project Forms'
       },
       content: [
@@ -92,36 +92,4 @@ exports.handler = async (event) => {
 
     console.log('📨 SendGrid Response Status:', sendgridResponse.status);
 
-    if (!sendgridResponse.ok) {
-      const errorText = await sendgridResponse.text();
-      console.error('❌ SendGrid Error:', sendgridResponse.status, errorText);
-      return {
-        statusCode: sendgridResponse.status,
-        body: JSON.stringify({
-          error: 'SendGrid API error',
-          details: errorText
-        })
-      };
-    }
-
-    console.log('✅ Email sent successfully via SendGrid');
-    return {
-      statusCode: 200,
-      body: JSON.stringify({
-        success: true,
-        message: 'Email sent successfully',
-        recipient: to
-      })
-    };
-
-  } catch (error) {
-    console.error('❌ Function Error:', error.message);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({
-        error: 'Internal server error',
-        details: error.message
-      })
-    };
-  }
-};
+    if
