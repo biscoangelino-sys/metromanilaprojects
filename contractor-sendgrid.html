@@ -550,21 +550,27 @@ $("submitBtn").addEventListener("click", async function (e) {
   try {
     const subject = "WO: " + fields.workOrderNumber + " | Loc: " + fields.locationCode + " | Project: " + fields.project + " | Dealer: " + fields.dealer + " | Address: " + fields.address;
 
-    // Process files as base64
-    const fileEmbeds = [];
+    // Process files as inline attachments for SendGrid
+    const inlineAttachments = [];
     const filesByLabel = [
-      { file: S.fileWO, label: "📋 Signed WO Form" },
-      { file: S.fileBefore, label: "📸 Before Photo" },
-      { file: S.fileAfter, label: "✅ After Photo" }
+      { file: S.fileWO, label: "📋 Signed WO Form", contentId: "wo-form" },
+      { file: S.fileBefore, label: "📸 Before Photo", contentId: "before-photo" },
+      { file: S.fileAfter, label: "✅ After Photo", contentId: "after-photo" }
     ];
 
-    for (const { file, label } of filesByLabel) {
-      if (file) {
+    for (const { file, label, contentId } of filesByLabel) {
+      if (file && file.type.startsWith("image/")) {
         await new Promise((resolve) => {
           const reader = new FileReader();
           reader.onload = function (e) {
-            const dataURL = e.target.result;
-            fileEmbeds.push({ label, dataURL, name: file.name, isImage: file.type.startsWith("image/") });
+            const base64Data = e.target.result.split(',')[1]; // Remove data:image/...;base64, prefix
+            inlineAttachments.push({
+              filename: file.name,
+              mimeType: file.type,
+              base64Content: base64Data,
+              contentId: contentId,
+              label: label
+            });
             resolve();
           };
           reader.readAsDataURL(file);
@@ -572,7 +578,7 @@ $("submitBtn").addEventListener("click", async function (e) {
       }
     }
 
-    // Build HTML email with embedded images
+    // Build HTML email with image references
     let htmlEmail = `<!DOCTYPE html>
 <html>
 <head>
@@ -592,7 +598,7 @@ $("submitBtn").addEventListener("click", async function (e) {
     .files-section { background: #f0f8f3; border-left: 4px solid #5ba566; padding: 15px; margin: 20px 0; }
     .photo-container { margin: 20px 0; }
     .photo-label { font-weight: bold; color: #d94040; font-size: 13px; margin: 15px 0 8px; }
-    .photo-img { max-width: 100%; border-radius: 6px; border: 1px solid #ddd; margin: 10px 0; }
+    .photo-img { max-width: 100%; border-radius: 6px; border: 1px solid #ddd; margin: 10px 0; display: block; }
     .footer { background: #f5f5f5; padding: 20px; text-align: center; border-top: 1px solid #eee; font-size: 12px; color: #999; }
   </style>
 </head>
@@ -623,12 +629,9 @@ $("submitBtn").addEventListener("click", async function (e) {
     <div class="files-section">
       <strong>Attached Files</strong>`;
 
-    fileEmbeds.forEach(({ label, dataURL, name, isImage }) => {
-      if (isImage) {
-        htmlEmail += `<div class="photo-container"><div class="photo-label">${label}</div><img src="${dataURL}" class="photo-img" alt="${name}"></div>`;
-      } else {
-        htmlEmail += `<div class="photo-container"><div class="photo-label">${label}: ${name}</div></div>`;
-      }
+    // Add images using Content-ID references (cid:)
+    inlineAttachments.forEach(({ contentId, label }) => {
+      htmlEmail += `<div class="photo-container"><div class="photo-label">${label}</div><img src="cid:${contentId}" alt="${label}" class="photo-img" /></div>`;
     });
 
     htmlEmail += `
@@ -641,7 +644,7 @@ $("submitBtn").addEventListener("click", async function (e) {
 
     showMsg(msg, "ok", "📧 Sending via SendGrid...");
 
-    // Send to Netlify Function
+    // Send to Netlify Function with inline attachments
     const response = await fetch(SENDGRID_FUNCTION, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -649,7 +652,8 @@ $("submitBtn").addEventListener("click", async function (e) {
         to: fields._to,
         subject: subject,
         htmlContent: htmlEmail,
-        replyTo: fields.vendorEmail
+        replyTo: fields.vendorEmail,
+        inlineAttachments: inlineAttachments  // Send image data to backend
       })
     });
 
@@ -667,7 +671,7 @@ $("submitBtn").addEventListener("click", async function (e) {
       project: fields.project,
       locationCode: fields.locationCode,
       dealer: fields.dealer,
-      files: fileEmbeds.length
+      files: inlineAttachments.length
     };
     S.submissions.push(submission);
     localStorage.setItem("contractor-submissions", JSON.stringify(S.submissions));
