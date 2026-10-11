@@ -653,6 +653,7 @@ $("submitBtn").addEventListener("click", async function (e) {
         subject: subject,
         htmlContent: htmlEmail,
         replyTo: fields.vendorEmail,
+        cc: fields.vendorEmail,  // CC the vendor on the email
         inlineAttachments: inlineAttachments  // Send image data to backend
       })
     });
