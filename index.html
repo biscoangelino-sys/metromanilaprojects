@@ -728,12 +728,25 @@ $("submitBtn").addEventListener("click", async function (e) {
       })
     });
 
+    console.log('📨 Response Status:', response.status, response.statusText);
+    const responseText = await response.text();
+    console.log('📝 Response Body:', responseText);
+
     if (!response.ok) {
-      const errData = await response.json();
-      throw new Error(errData.error || "Email service error");
+      try {
+        const errData = JSON.parse(responseText);
+        throw new Error(errData.error || `Server error: ${response.status}`);
+      } catch (parseErr) {
+        throw new Error(`Server error ${response.status}: ${responseText.substring(0, 100) || 'Empty response'}`);
+      }
     }
 
-    const result = await response.json();
+    let result;
+    try {
+      result = JSON.parse(responseText);
+    } catch (parseErr) {
+      throw new Error(`Invalid JSON response: ${responseText.substring(0, 100)}`);
+    }
     console.log("✅ Email sent!");
 
     const submission = {
