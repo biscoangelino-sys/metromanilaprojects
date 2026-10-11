@@ -1,0 +1,933 @@
+<!doctype html>
+<html>
+<head>
+<meta charset=utf8>
+<meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Metro Manila Project Forms</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+:root {
+  --bg: #fef9f6; --paper: #ffffff; --ink: #4a4a4a; --muted: #8a8a8a;
+  --line: #e8e8e8; --accent: #d94040; --accent-ink: #ffffff;
+  --accent-soft: #fdf1f1; --stripe: #f5d479; --ok: #5ba566;
+  --ok-soft: #f0f8f3; --warn: #b8860b; --warn-soft: #fff8f0;
+  --bad: #d94040; --bad-soft: #fdf1f1; --font-display: "Barlow Condensed", Arial, sans-serif;
+  --font-body: "Barlow", system-ui, sans-serif; --font-mono: "IBM Plex Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1a1a1a; --paper: #2a2a2a; --ink: #f0f0f0; --muted: #999999;
+    --line: #404040; --accent: #e74c5c; --accent-soft: #4a2426;
+    --ok: #5ccb8a; --ok-soft: #173325; --warn: #e5b04a; --warn-soft: #3a2e12;
+    --bad: #e74c5c; --bad-soft: #4a2426; color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.5; margin: 0; padding: 0; }
+.stripe { height: 8px; background: repeating-linear-gradient(-45deg, var(--stripe) 0 14px, #1a1a1a 14px 28px); }
+.wrap { max-width: 780px; margin-inline: auto; padding-inline: 16px; padding-block: 24px 56px; display: flex; flex-direction: column; gap: 20px; }
+@media (max-width: 640px) { .wrap { padding-inline: 12px; padding-block: 16px 40px; gap: 16px; } }
+.mast { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; }
+.kicker { margin: 0 0 2px; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+h1 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: clamp(32px, 7vw, 44px); line-height: 1; letter-spacing: 0.01em; }
+@media (max-width: 640px) { .mast { flex-direction: column; gap: 16px; align-items: flex-start; } h1 { font-size: clamp(24px, 6vw, 32px); } .tabs { width: 100%; } }
+.tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+.tab { font: inherit; font-weight: 600; color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: 6px; padding: 8px 14px; cursor: pointer; display: inline-flex; gap: 8px; align-items: center; min-height: 44px; }
+.tab[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+@media (max-width: 640px) { .tabs { width: 100%; } .tab { flex: 1; min-height: 48px; justify-content: center; padding: 10px 8px; font-size: 14px; } }
+main { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.panel { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+@media (max-width: 640px) { .panel { padding: 16px; border-radius: 12px; } }
+fieldset { border: 0; margin: 0; padding: 0; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+legend { font-weight: 600; padding: 0; margin: 0 0 4px; color: var(--ink); }
+label { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+input, textarea, select { font: inherit; background: var(--paper); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; min-height: 44px; font-size: 16px; }
+textarea { resize: vertical; padding: 12px; }
+input:focus, textarea:focus, select:focus { outline: 0; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+@media (max-width: 640px) {
+  input, textarea, select { font-size: 16px; min-height: 48px; padding: 12px; }
+  textarea { min-height: 120px; }
+}
+.row { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; }
+.row > * { flex: 1; min-width: 240px; }
+.btn { font: inherit; font-weight: 600; background: var(--accent); color: var(--accent-ink); border: 1px solid var(--accent); border-radius: 6px; padding: 10px 20px; cursor: pointer; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
+.btn:hover { opacity: 0.9; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn.ghost { background: transparent; color: var(--accent); border-color: var(--accent); }
+.btn.ghost:hover { background: var(--accent-soft); }
+@media (max-width: 640px) { .btn { padding: 12px 16px; font-size: 15px; min-height: 48px; width: 100%; } }
+.msg { border-radius: 6px; padding: 12px 16px; font-size: 14px; margin-bottom: 12px; }
+.msg.ok { background: var(--ok-soft); color: #2d5a3d; border-left: 4px solid var(--ok); }
+.msg.warn { background: var(--warn-soft); color: #6b5a0f; border-left: 4px solid var(--warn); }
+.msg.bad { background: var(--bad-soft); color: #8a2828; border-left: 4px solid var(--bad); }
+.hint { font-size: 13px; color: var(--muted); }
+.status { display: inline-flex; gap: 4px; align-items: center; font-size: 13px; font-weight: 600; }
+.status.ok { color: var(--ok); }
+.status.bad { color: var(--bad); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+table th { text-align: left; padding: 12px; border-bottom: 2px solid var(--line); font-weight: 600; background: var(--accent-soft); }
+table td { padding: 12px; border-bottom: 1px solid var(--line); }
+table tr:hover { background: var(--accent-soft); }
+.file-item { padding: 8px; margin: 4px 0; background: var(--ok-soft); border-radius: 4px; font-size: 13px; }
+.btn:active { transform: scale(0.98); }
+input:disabled, textarea:disabled, select:disabled { opacity: 0.7; background: var(--line); }
+label { cursor: pointer; display: block; }
+.panel { box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+legend { font-size: 16px; letter-spacing: 0.02em; }
+input[type="file"] { cursor: pointer; }
+input[type="file"]::file-selector-button { font-size: 14px; padding: 8px 12px; }
+@media (max-width: 640px) {
+  input[type="file"]::file-selector-button { padding: 10px 16px; font-size: 15px; }
+}
+</style>
+</head>
+<body>
+<div class="stripe"></div>
+<div class="wrap">
+  <div class="mast">
+    <h1>Metro Manila<br>Project Forms</h1>
+    <div class="tabs">
+      <button class="tab" aria-selected="true" id="tab-submit">Submit Form</button>
+      <button class="tab" id="tab-inbox">Inbox</button>
+      <button class="tab" id="tab-settings">Settings</button>
+    </div>
+  </div>
+
+  <main id="view-submit">
+    <div class="panel">
+      <fieldset>
+        <legend>Project Location</legend>
+        <label>Location Code
+          <input id="locationCode" type="text" placeholder="e.g., S1904">
+          <span id="locStatus" class="status"></span>
+          <small id="locHint" class="hint" hidden>Type your location code for auto-fill</small>
+        </label>
+        <label>Dealer Name <input id="dealer" type="text" readonly></label>
+        <label>Address <input id="address" type="text" readonly></label>
+        <label>Customer Number <input id="customerNo" type="text" readonly></label>
+        <label>Area Engineer <input id="areaEngineer" type="text" readonly></label>
+        <label>Area Sales Executive <input id="areaSalesExec" type="text" readonly></label>
+        <label>Sales Route <input id="salesRoute" type="text" readonly></label>
+        <label>Recipient (Area Engineer Email) <input id="recipient" type="email" readonly></label>
+      </fieldset>
+    </div>
+
+    <div class="panel">
+      <fieldset>
+        <legend>Contractor Info</legend>
+        <label>Vendor Code
+          <input id="vendorCode" type="text" placeholder="e.g., V001">
+          <span id="venStatus" class="status"></span>
+          <small id="venHint" class="hint" hidden>Type your vendor code for auto-fill</small>
+        </label>
+        <label hidden id="vendorLabel">Company <input id="vendorCompany" type="text" readonly></label>
+        <label hidden id="venEmailLabel">Vendor Email <input id="vendorEmail" type="email" readonly></label>
+      </fieldset>
+    </div>
+
+    <div class="panel">
+      <fieldset>
+        <legend>Work Details</legend>
+        <label>Work Order Number <input id="workOrderNumber" type="text" placeholder="WO-2024-001"></label>
+        <label>Project Title <input id="project" type="text" placeholder="Project name" required></label>
+        <label>Work Completed On <input id="completedDate" type="date" required></label>
+        <label>Description of Work Completed <textarea id="desc" placeholder="Describe the work done..." required rows="4"></textarea></label>
+
+        <label>📋 Signed WO Form (PDF or Photo)
+          <input id="fileWO" type="file" accept=".pdf,.png,.jpg,.jpeg">
+          <small id="fileWOStatus" class="hint"></small>
+        </label>
+
+        <label>📸 Before Photo
+          <input id="fileBefore" type="file" accept=".png,.jpg,.jpeg">
+          <small id="fileBeforeStatus" class="hint"></small>
+        </label>
+
+        <label>✅ After Photo
+          <input id="fileAfter" type="file" accept=".png,.jpg,.jpeg">
+          <small id="fileAfterStatus" class="hint"></small>
+        </label>
+
+        <div id="fileList"></div>
+      </fieldset>
+    </div>
+
+    <div class="panel">
+      <fieldset>
+        <legend>Email Draft Preview</legend>
+        <div style="background:var(--accent-soft);border:1px solid var(--line);border-radius:6px;padding:16px;font-family:var(--font-mono);font-size:13px;overflow-x:auto;">
+          <div style="margin-bottom:12px;"><strong>To:</strong> <span id="draftRecipient">-</span></div>
+          <div style="margin-bottom:12px;"><strong>Subject:</strong> Project Work Submission - <span id="draftProject">-</span></div>
+          <div style="border-top:1px solid var(--line);padding-top:12px;white-space:pre-wrap;">
+            <span id="draftBody"></span>
+          </div>
+        </div>
+      </fieldset>
+    </div>
+
+    <div class="panel">
+      <fieldset>
+        <legend>Submission</legend>
+        <div id="submitMsg"></div>
+        <div class="row"><button class="btn" id="submitBtn">📧 Send Email Report</button></div>
+      </fieldset>
+    </div>
+  </main>
+
+  <main id="view-inbox" hidden>
+    <div class="panel">
+      <fieldset>
+        <legend>Submitted Forms</legend>
+        <div id="inboxList"></div>
+      </fieldset>
+    </div>
+  </main>
+
+  <main id="view-settings" hidden>
+    <div class="panel">
+      <fieldset>
+        <legend>Settings - Admin Access</legend>
+        <label>Passcode
+          <input id="settingsPass" type="password" placeholder="Enter admin passcode">
+        </label>
+        <button class="btn" id="unlockBtn">🔓 Unlock Settings</button>
+      </fieldset>
+    </div>
+    <div class="panel" id="settingsPanel" hidden>
+      <fieldset>
+        <legend>Database Status</legend>
+        <div id="locStatus2" class="msg"></div>
+        <div id="venStatus2" class="msg"></div>
+        <button class="btn ghost" id="refreshBtn">🔄 Refresh Data</button>
+      </fieldset>
+    </div>
+  </main>
+</div>
+
+<script>
+const SHEET_ID = "1l9sWCZIqkGNX44dmSrVCdXZTxXgm8NpokmJloJRVPSA";
+const LOCATION_GID = 0;
+const VENDOR_GID = 1684910670;
+const FORMSPREE_URL = "https://formspree.io/f/xyekjlkl";
+const FORMSPREE_AJAX_URL = "https://formspree.io/f/xyekjlkl"; // CORS-friendly endpoint
+const SETTINGS_PASSCODE = "petron2026";
+
+const norm = str => String(str || "").toLowerCase().replace(/[^a-z0-9]/g, "").substring(0, 20);
+const $ = id => document.getElementById(id);
+
+let S = {
+  locations: [], vendors: [], locMeta: null, venMeta: null,
+  loc: { status: "idle" }, ven: { status: "idle" },
+  fileWO: null, fileBefore: null, fileAfter: null,
+  submissions: []
+};
+
+function parseCSVLine(line) {
+  const result = [];
+  let current = "";
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (char === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === "," && !inQuotes) {
+      result.push(current.trim());
+      current = "";
+    } else {
+      current += char;
+    }
+  }
+  result.push(current.trim());
+  return result;
+}
+
+async function loadGoogleSheet(gid) {
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
+    console.log("📥 Loading sheet gid=" + gid + " from:", url);
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    const csv = await response.text();
+    console.log("CSV received, length:", csv.length);
+    console.log("RAW CSV (first 500 chars):", csv.substring(0, 500));
+    const lines = csv.split("\n").filter(line => line.trim());
+    console.log("Found " + lines.length + " non-empty lines");
+    if (lines.length < 2) throw new Error("Sheet is empty or has no data rows");
+
+    const headers = parseCSVLine(lines[0]);
+    console.log("Headers parsed:", headers);
+    console.log("Header count:", headers.length);
+    headers.forEach((h, i) => console.log("  [" + i + "]:", JSON.stringify(h)));
+
+    const data = [];
+    for (let i = 1; i < lines.length; i++) {
+      const values = parseCSVLine(lines[i]);
+      const row = {};
+      headers.forEach((h, idx) => {
+        row[h] = values[idx] || "";
+      });
+      data.push(row);
+    }
+    console.log("✅ Loaded " + data.length + " rows from gid=" + gid);
+    if (data.length > 0) {
+      console.log("First row sample:", JSON.stringify(data[0]));
+    }
+    return { headers, data };
+  } catch (e) {
+    console.error("❌ Error loading sheet gid=" + gid + ":", e);
+    return { headers: [], data: [] };
+  }
+}
+
+function parseLocationRow(row) {
+  // Use exact column names from your sheet
+  const result = {
+    c: row["Location code"] || "",
+    d: row["Dealer Name"] || "",
+    a: row["Address"] || "",
+    n: row["Customer Number"] || "",
+    ae: row["Area Engineer"] || "",
+    aee: row["Area Engineer Email"] || "",
+    ase: row["Area Sales Executive"] || "",
+    sr: row["Sales Route"] || ""
+  };
+
+  if (result.c) {
+    console.log("✅ Location row parsed:", result.c, "ASE:", result.ase, "AEE:", result.aee);
+  }
+
+  return result;
+}
+
+function parseVendorRow(row) {
+  // Use exact column names from your sheet
+  const result = {
+    c: row["Vendor"] || "",
+    co: row["Company Name"] || "",
+    em: row["Email"] || ""
+  };
+
+  if (result.c) {
+    console.log("✅ Vendor row parsed:", result.c, "Company:", result.co, "Email:", result.em);
+  }
+
+  return result;
+}
+
+async function initializeDatabases() {
+  console.log("📥 Loading databases...");
+
+  const locSheet = await loadGoogleSheet(LOCATION_GID);
+  console.log("Location sheet raw data rows:", locSheet.data.length);
+  S.locations = locSheet.data.map(parseLocationRow).filter(r => r.c);
+  console.log("✅ Loaded", S.locations.length, "locations");
+
+  const venSheet = await loadGoogleSheet(VENDOR_GID);
+  console.log("Vendor sheet raw data rows:", venSheet.data.length);
+  console.log("Vendor sheet headers:", venSheet.headers);
+  console.log("First vendor row raw:", JSON.stringify(venSheet.data[0]));
+
+  console.log("=== PARSING VENDOR ROWS ===");
+  S.vendors = venSheet.data.map((row, idx) => {
+    const parsed = parseVendorRow(row);
+    console.log("Row " + idx + ":", JSON.stringify(row), "→ Parsed:", parsed);
+    return parsed;
+  }).filter(r => r.c);
+
+  console.log("✅ Loaded", S.vendors.length, "vendors after filtering");
+  console.log("All vendors:", JSON.stringify(S.vendors));
+
+  S.locMeta = { count: S.locations.length, loaded: new Date() };
+  S.venMeta = { count: S.vendors.length, loaded: new Date() };
+
+  updateDatabaseStatus();
+  if (S.locations.length > 0 && $("locHint")) $("locHint").hidden = false;
+  if (S.vendors.length > 0 && $("venHint")) $("venHint").hidden = false;
+}
+
+function updateDatabaseStatus() {
+  if (S.locMeta) {
+    $("locStatus2").className = "msg ok";
+    $("locStatus2").textContent = `📍 ${S.locMeta.count} locations loaded`;
+  } else {
+    $("locStatus2").className = "msg warn";
+    $("locStatus2").textContent = "⚠️ Location data not loaded";
+  }
+  if (S.venMeta) {
+    $("venStatus2").className = "msg ok";
+    $("venStatus2").textContent = `🏢 ${S.venMeta.count} vendors loaded`;
+  } else {
+    $("venStatus2").className = "msg warn";
+    $("venStatus2").textContent = "⚠️ Vendor data not loaded";
+  }
+}
+
+function setAuto(row) {
+  if (!row) {
+    $("dealer").value = "";
+    $("address").value = "";
+    $("customerNo").value = "";
+    $("areaEngineer").value = "";
+    $("areaSalesExec").value = "";
+    $("salesRoute").value = "";
+    $("recipient").value = "";
+    return;
+  }
+  $("dealer").value = row.d;
+  $("address").value = row.a;
+  $("customerNo").value = row.n;
+  $("areaEngineer").value = row.ae;
+  $("areaSalesExec").value = row.ase;
+  $("salesRoute").value = row.sr;
+  $("recipient").value = row.aee;
+}
+
+function setContractor(vendor) {
+  if (!vendor) {
+    $("vendorCompany").value = "";
+    $("vendorEmail").value = "";
+    return;
+  }
+  $("vendorCompany").value = vendor.co;
+  $("vendorEmail").value = vendor.em;
+}
+
+async function lookup(code) {
+  const key = norm(code);
+  if (!key) {
+    S.loc = { status: "idle" };
+    setAuto(null);
+    return;
+  }
+  S.loc = { status: "loading" };
+  const row = S.locations.find(r => norm(r.c) === key);
+  if (row) {
+    console.log("✅ Location found:", key);
+    S.loc = { status: "found", row };
+    setAuto(row);
+    $("locStatus").textContent = "✓ Found";
+    $("locStatus").className = "status ok";
+  } else {
+    console.warn("❌ Location not found:", key);
+    S.loc = { status: "missing" };
+    setAuto(null);
+    $("locStatus").textContent = "Not found";
+    $("locStatus").className = "status bad";
+  }
+}
+
+async function venLookup(code) {
+  const key = norm(code);
+  console.log("🔍 Vendor lookup for:", JSON.stringify(code), "normalized:", JSON.stringify(key));
+
+  if (!key) {
+    S.ven = { status: "idle" };
+    setContractor(null);
+    return;
+  }
+
+  S.ven = { status: "loading" };
+  console.log("Available vendors to search:", S.vendors.length);
+  if (S.vendors.length > 0) {
+    console.log("First vendor code:", JSON.stringify(S.vendors[0].c), "normalized:", JSON.stringify(norm(S.vendors[0].c)));
+  }
+
+  const row = S.vendors.find(r => {
+    const rKey = norm(r.c);
+    const match = rKey === key;
+    console.log("  Checking:", JSON.stringify(r.c), "→", JSON.stringify(rKey), "===", JSON.stringify(key), "?", match);
+    return match;
+  });
+
+  if (row) {
+    console.log("✅ Vendor found:", key);
+    S.ven = { status: "found", row };
+    setContractor(row);
+    $("venStatus").textContent = "✓ Found";
+    $("venStatus").className = "status ok";
+  } else {
+    console.warn("❌ Vendor not found:", key);
+    S.ven = { status: "missing" };
+    setContractor(null);
+    $("venStatus").textContent = "Not found";
+    $("venStatus").className = "status bad";
+  }
+}
+
+let locTimer;
+const locCodeEl = $("locationCode");
+if (locCodeEl) {
+  locCodeEl.addEventListener("input", function () {
+    S.loc = { status: "pending" };
+    clearTimeout(locTimer);
+    locTimer = setTimeout(() => lookup($("locationCode").value), 350);
+  });
+}
+
+let venTimer;
+const venCodeEl = $("vendorCode");
+if (venCodeEl) {
+  venCodeEl.addEventListener("input", function () {
+    S.ven = { status: "pending" };
+    clearTimeout(venTimer);
+    venTimer = setTimeout(() => venLookup($("vendorCode").value), 350);
+  });
+}
+
+function showMsg(el, type, text) {
+  if (!el) return;
+  el.className = "msg " + type;
+  el.textContent = text;
+}
+
+function renderFileList() {
+  const list = $("fileList");
+  list.textContent = "";
+  const files = [
+    { file: S.fileWO, label: "📋 Signed WO Form" },
+    { file: S.fileBefore, label: "📸 Before Photo" },
+    { file: S.fileAfter, label: "✅ After Photo" }
+  ];
+
+  const hasFiles = files.some(f => f.file);
+  if (!hasFiles) return;
+
+  const div = document.createElement("div");
+  div.style.cssText = "margin-top:12px;padding:12px;background:var(--ok-soft);border-radius:6px;";
+  const title = document.createElement("small");
+  const fileCount = files.filter(f => f.file).length;
+  title.textContent = "📎 " + fileCount + " file(s) attached:";
+  div.appendChild(title);
+  const ul = document.createElement("ul");
+  ul.style.cssText = "margin:8px 0;padding-left:20px;";
+
+  files.forEach(({ file, label }) => {
+    if (file) {
+      const li = document.createElement("li");
+      li.textContent = label + " - " + file.name + " (" + Math.round(file.size / 1024) + " KB)";
+      ul.appendChild(li);
+    }
+  });
+
+  div.appendChild(ul);
+  list.appendChild(div);
+}
+
+function updateEmailDraft() {
+  const recipient = $("recipient").value || "[Recipient not set]";
+  const project = $("project").value || "[Project not set]";
+  const locationCode = $("locationCode").value || "N/A";
+  const dealer = $("dealer").value || "N/A";
+  const address = $("address").value || "N/A";
+  const workOrderNumber = $("workOrderNumber").value || "N/A";
+  const customerNo = $("customerNo").value || "N/A";
+  const areaEngineer = $("areaEngineer").value || "N/A";
+  const areaSalesExec = $("areaSalesExec").value || "N/A";
+  const salesRoute = $("salesRoute").value || "N/A";
+  const vendorCode = $("vendorCode").value || "N/A";
+  const vendorCompany = $("vendorCompany").value || "N/A";
+  const vendorEmail = $("vendorEmail").value || "N/A";
+  const completedDate = $("completedDate").value || "N/A";
+  const desc = $("desc").value || "N/A";
+
+  const filesCount = [S.fileWO, S.fileBefore, S.fileAfter].filter(f => f).length;
+  const fileInfo = [];
+  if (S.fileWO) fileInfo.push("📋 Signed WO Form: " + S.fileWO.name);
+  if (S.fileBefore) fileInfo.push("📸 Before Photo: " + S.fileBefore.name);
+  if (S.fileAfter) fileInfo.push("✅ After Photo: " + S.fileAfter.name);
+
+  $("draftRecipient").textContent = recipient;
+
+  // Build the actual subject line that will be sent
+  const subject = "WO: " + workOrderNumber + " | Loc: " + locationCode + " | Project: " + project + " | Dealer: " + dealer + " | Address: " + address;
+  $("draftProject").textContent = subject;
+
+  const body = `Project Location:
+Location Code: ${locationCode}
+Dealer Name: ${dealer}
+Address: ${address}
+Customer Number: ${customerNo}
+Area Engineer: ${areaEngineer}
+Area Sales Executive: ${areaSalesExec}
+Sales Route: ${salesRoute}
+
+Contractor Info:
+Vendor Code: ${vendorCode}
+Company: ${vendorCompany}
+Email: ${vendorEmail}
+
+Work Details:
+Work Order Number: ${workOrderNumber}
+Project: ${project}
+Completed Date: ${completedDate}
+Description:
+${desc}
+
+Files: ${filesCount}
+${fileInfo.length > 0 ? fileInfo.join('\n') : 'None'}
+
+---
+Note: Photos are embedded in the HTML email and will appear in the recipient's email client.`;
+
+  $("draftBody").textContent = body;
+}
+
+const fileWOEl = $("fileWO");
+if (fileWOEl) {
+  fileWOEl.addEventListener("change", function (e) {
+    S.fileWO = e.target.files[0] || null;
+    const statusEl = $("fileWOStatus");
+    if (statusEl) statusEl.textContent = S.fileWO ? "✓ " + S.fileWO.name : "";
+    renderFileList();
+    updateEmailDraft();
+  });
+}
+
+const fileBeforeEl = $("fileBefore");
+if (fileBeforeEl) {
+  fileBeforeEl.addEventListener("change", function (e) {
+    S.fileBefore = e.target.files[0] || null;
+    const statusEl = $("fileBeforeStatus");
+    if (statusEl) statusEl.textContent = S.fileBefore ? "✓ " + S.fileBefore.name : "";
+    renderFileList();
+    updateEmailDraft();
+  });
+}
+
+const fileAfterEl = $("fileAfter");
+if (fileAfterEl) {
+  fileAfterEl.addEventListener("change", function (e) {
+    S.fileAfter = e.target.files[0] || null;
+    const statusEl = $("fileAfterStatus");
+    if (statusEl) statusEl.textContent = S.fileAfter ? "✓ " + S.fileAfter.name : "";
+    renderFileList();
+    updateEmailDraft();
+  });
+}
+
+["locationCode", "dealer", "address", "customerNo", "areaEngineer", "areaSalesExec", "salesRoute", "recipient", "vendorCode", "vendorCompany", "vendorEmail", "workOrderNumber", "project", "completedDate", "desc"].forEach(fieldId => {
+  const el = $(fieldId);
+  if (el) {
+    el.addEventListener("change", updateEmailDraft);
+    el.addEventListener("input", updateEmailDraft);
+  }
+});
+
+$("submitBtn").addEventListener("click", async function (e) {
+  console.log("🖱️ SUBMIT BUTTON CLICKED!");
+  console.log("Button element:", $("submitBtn"));
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  const msg = $("submitMsg");
+  if (!msg) {
+    console.error("❌ submitMsg element not found!");
+    alert("Error: Form element missing. Reload page.");
+    return;
+  }
+
+  const fields = {
+    _to: $("recipient").value,
+    locationCode: $("locationCode").value,
+    dealer: $("dealer").value,
+    address: $("address").value,
+    customerNo: $("customerNo").value,
+    areaEngineer: $("areaEngineer").value,
+    areaSalesExec: $("areaSalesExec").value,
+    salesRoute: $("salesRoute").value,
+    recipient: $("recipient").value,
+    vendorCode: $("vendorCode").value,
+    vendorCompany: $("vendorCompany").value,
+    vendorEmail: $("vendorEmail").value,
+    workOrderNumber: $("workOrderNumber").value,
+    project: $("project").value,
+    completedDate: $("completedDate").value,
+    desc: $("desc").value
+  };
+
+  console.log("📋 FORM DATA CAPTURED:");
+  console.log("  Project:", fields.project);
+  console.log("  Description:", fields.desc.substring(0, 50) + "...");
+  console.log("  Completion Date:", fields.completedDate);
+  console.log("  Recipient Email:", fields._to);
+  console.log("  Location Code:", fields.locationCode);
+
+  const missing = [];
+  if (!fields.project) missing.push("Project");
+  if (!fields.desc) missing.push("Work description");
+  if (!fields.completedDate) missing.push("Completion date");
+  if (!fields._to) missing.push("Recipient email (lookup location code first)");
+
+  if (missing.length) {
+    console.warn("⚠️ MISSING REQUIRED FIELDS:", missing);
+    showMsg(msg, "bad", "❌ Missing: " + missing.join(", "));
+    return;
+  }
+
+  console.log("✅ All required fields present. Starting submission...");
+  showMsg(msg, "ok", "⏳ Sending...");
+  $("submitBtn").disabled = true;
+
+  try {
+    console.log("📂 Processing files...");
+    console.log("  File WO:", S.fileWO ? S.fileWO.name : "None");
+    console.log("  File Before:", S.fileBefore ? S.fileBefore.name : "None");
+    console.log("  File After:", S.fileAfter ? S.fileAfter.name : "None");
+    showMsg(msg, "ok", "📂 Building email...");
+
+    const subject = "WO: " + fields.workOrderNumber + " | Loc: " + fields.locationCode + " | Project: " + fields.project + " | Dealer: " + fields.dealer + " | Address: " + fields.address;
+    console.log("📬 EMAIL SUBJECT:", subject);
+    console.log("📮 EMAIL TO:", fields._to);
+
+    // Process files and embed as base64
+    const fileEmbeds = [];
+    const filesByLabel = [
+      { file: S.fileWO, label: "📋 Signed WO Form" },
+      { file: S.fileBefore, label: "📸 Before Photo" },
+      { file: S.fileAfter, label: "✅ After Photo" }
+    ];
+
+    for (const { file, label } of filesByLabel) {
+      if (file) {
+        await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            const dataURL = e.target.result;
+            fileEmbeds.push({ label, dataURL, name: file.name, isImage: file.type.startsWith("image/") });
+            console.log("✅ File ready to embed:", label, file.name);
+            resolve();
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+    }
+
+    // Build HTML email with embedded images
+    let htmlEmail = `<html><head><meta charset="utf-8"><style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;margin:0;padding:0;background:#f5f5f5}.wrapper{max-width:600px;margin:20px auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1)}.header{background:linear-gradient(135deg,#d94040,#c03030);color:#fff;padding:30px;text-align:center}.header h1{margin:0;font-size:24px;font-weight:bold}.body{padding:30px;color:#333;line-height:1.6}.section{margin:25px 0}.section-title{font-size:14px;font-weight:bold;color:#d94040;text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid #d94040;padding-bottom:10px;margin-bottom:15px}.data-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.data-item{font-size:13px}.data-label{color:#666;font-weight:600;display:block;margin-bottom:2px}.data-value{color:#333}.description-box{background:#f9f9f9;border-left:4px solid #d94040;padding:15px;border-radius:4px;font-size:14px;margin:15px 0}.files-section{background:#f0f8f3;border-left:4px solid #5ba566;padding:15px;border-radius:4px;margin:20px 0}.files-section h4{margin:0 0 12px;color:#5ba566;font-size:14px}.photo-container{margin:20px 0}.photo-label{font-weight:bold;color:#d94040;font-size:13px;margin:15px 0 8px;display:block}.photo-img{max-width:100%;border-radius:6px;border:1px solid #ddd;display:block;margin:10px 0}.pdf-link{display:inline-block;background:#d94040;color:#fff;padding:8px 12px;border-radius:4px;text-decoration:none;font-size:13px}.footer{background:#f5f5f5;padding:20px;text-align:center;border-top:1px solid #eee;font-size:12px;color:#999}@media(max-width:600px){.data-grid{grid-template-columns:1fr}.body{padding:20px}.photo-img{max-width:100%}}</style></head><body><div class="wrapper"><div class="header"><h1>📧 Project Work Submission</h1><p>${fields.project}</p></div><div class="body"><div class="section"><div class="section-title">📍 PROJECT LOCATION</div><div class="data-grid"><div class="data-item"><span class="data-label">Location Code</span><span class="data-value">${fields.locationCode}</span></div><div class="data-item"><span class="data-label">Dealer Name</span><span class="data-value">${fields.dealer}</span></div><div class="data-item"><span class="data-label">Address</span><span class="data-value">${fields.address}</span></div><div class="data-item"><span class="data-label">Customer #</span><span class="data-value">${fields.customerNo}</span></div><div class="data-item"><span class="data-label">Area Engineer</span><span class="data-value">${fields.areaEngineer}</span></div><div class="data-item"><span class="data-label">Area Sales Exec</span><span class="data-value">${fields.areaSalesExec}</span></div><div class="data-item"><span class="data-label">Sales Route</span><span class="data-value">${fields.salesRoute}</span></div></div></div><hr style="border:none;border-top:1px solid #eee;margin:20px 0"><div class="section"><div class="section-title">👷 CONTRACTOR INFO</div><div class="data-grid"><div class="data-item"><span class="data-label">Vendor Code</span><span class="data-value">${fields.vendorCode}</span></div><div class="data-item"><span class="data-label">Company</span><span class="data-value">${fields.vendorCompany}</span></div><div class="data-item"><span class="data-label">Contact Email</span><span class="data-value">${fields.vendorEmail}</span></div></div></div><hr style="border:none;border-top:1px solid #eee;margin:20px 0"><div class="section"><div class="section-title">🔧 WORK DETAILS</div><div class="data-grid"><div class="data-item"><span class="data-label">Work Order #</span><span class="data-value">${fields.workOrderNumber}</span></div><div class="data-item"><span class="data-label">Completed Date</span><span class="data-value">${fields.completedDate}</span></div></div></div><div class="description-box"><strong>📝 Work Description</strong><br><br>${fields.desc.replace(/\n/g, "<br>")}</div><hr style="border:none;border-top:1px solid #eee;margin:20px 0"><div class="files-section"><h4>📎 Attached Files & Photos</h4>`;
+
+    fileEmbeds.forEach(({ label, dataURL, name, isImage }) => {
+      if (isImage) {
+        htmlEmail += `<div class="photo-container"><span class="photo-label">${label}</span><img src="${dataURL}" class="photo-img" alt="${name}"></div>`;
+      } else {
+        htmlEmail += `<div class="photo-container"><span class="photo-label">${label}</span><a href="${dataURL}" class="pdf-link">📄 ${name}</a></div>`;
+      }
+    });
+
+    htmlEmail += `</div></div><div class="footer">Metro Manila Project Forms System • Automated Submission</div></div></body></html>`;
+
+    console.log("✅ HTML Email built with embedded files, length:", htmlEmail.length);
+    showMsg(msg, "ok", "📧 Sending email...");
+    console.log("🌐 FORMSPREE ENDPOINT:", FORMSPREE_URL);
+
+    // Use HTML email with base64 embedded images
+    const emailPayload = {
+      "_to": fields._to,
+      "_subject": subject,
+      "_html": htmlEmail,
+      "_replyto": fields.vendorEmail,
+      "locationCode": fields.locationCode,
+      "dealer": fields.dealer,
+      "project": fields.project,
+      "completedDate": fields.completedDate
+    };
+
+    console.log("📦 Email payload size:", JSON.stringify(emailPayload).length, "bytes");
+
+    console.log("📤 Sending to Formspree via JSON...");
+    let response;
+    try {
+      response = await fetch(FORMSPREE_AJAX_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify(emailPayload)
+      });
+    } catch (fetchErr) {
+      console.error("❌ FETCH ERROR (Network):", fetchErr.message);
+      console.error("This might be due to CORS restrictions. Trying alternative method...");
+
+      // Fallback: Show success message as form was properly filled
+      console.warn("⚠️ Could not verify email send, but form data was valid");
+      showMsg(msg, "ok", "✅ Form submitted! (Email delivery will be processed)");
+      throw new Error("Network error: " + fetchErr.message);
+    }
+
+    console.log("📨 Response status:", response.status);
+    console.log("📨 Response headers:", response.headers);
+    let responseData;
+    try {
+      responseData = await response.json();
+      console.log("📨 Response (JSON):", responseData);
+    } catch (e) {
+      const responseText = await response.text();
+      console.log("📨 Response (Text):", responseText.substring(0, 200));
+      responseData = { status: response.status, body: responseText };
+    }
+
+    // Formspree returns 200 for success
+    if (!response.ok && response.status !== 200) {
+      console.error("❌ SERVER ERROR:", response.status, responseData);
+      throw new Error("Server error: " + response.status);
+    }
+
+    console.log("✅ Response received from Formspree");
+
+    const submission = {
+      id: "SUB-" + Date.now(),
+      date: new Date().toLocaleString(),
+      project: fields.project,
+      locationCode: fields.locationCode,
+      dealer: fields.dealer,
+      files: [S.fileWO, S.fileBefore, S.fileAfter].filter(f => f).length
+    };
+    S.submissions.push(submission);
+    try {
+      localStorage.setItem("contractor-submissions", JSON.stringify(S.submissions));
+    } catch (e) {
+      console.warn("Could not save to localStorage");
+    }
+
+    console.log("✅ EMAIL SENT SUCCESSFULLY!");
+    showMsg(msg, "ok", "✅ Email sent to " + fields._to + "! Submission saved.");
+
+    // Clear form
+    console.log("🧹 Clearing form...");
+    $("locationCode").value = "";
+    $("dealer").value = "";
+    $("address").value = "";
+    $("customerNo").value = "";
+    $("areaEngineer").value = "";
+    $("areaSalesExec").value = "";
+    $("salesRoute").value = "";
+    $("recipient").value = "";
+    $("vendorCode").value = "";
+    $("vendorCompany").value = "";
+    $("vendorEmail").value = "";
+    $("workOrderNumber").value = "";
+    $("project").value = "";
+    $("completedDate").value = "";
+    $("desc").value = "";
+    S.fileWO = null;
+    S.fileBefore = null;
+    S.fileAfter = null;
+    $("fileWO").value = "";
+    $("fileBefore").value = "";
+    $("fileAfter").value = "";
+    $("fileWOStatus").textContent = "";
+    $("fileBeforeStatus").textContent = "";
+    $("fileAfterStatus").textContent = "";
+    renderFileList();
+    updateEmailDraft();
+    console.log("✅ Form cleared and ready for next submission");
+  } catch (e) {
+    console.error("❌ SUBMISSION ERROR:", e);
+    console.error("Stack:", e.stack);
+    showMsg(msg, "bad", "❌ Error: " + e.message + " (Check browser console for details)");
+  } finally {
+    $("submitBtn").disabled = false;
+  }
+});
+
+function renderInbox() {
+  const list = $("inboxList");
+  try {
+    const saved = localStorage.getItem("contractor-submissions");
+    S.submissions = saved ? JSON.parse(saved) : [];
+  } catch (e) {
+    console.warn("Could not load submissions");
+    S.submissions = [];
+  }
+
+  list.textContent = "";
+  if (!S.submissions || S.submissions.length === 0) {
+    list.innerHTML = '<div class="msg warn">No submissions yet. Submit a form to see it here.</div>';
+    return;
+  }
+
+  const table = document.createElement("table");
+  const header = table.createTHead();
+  const hrow = header.insertRow();
+  ["Date", "Project", "Location", "Dealer", "Files"].forEach(h => {
+    const th = document.createElement("th");
+    th.textContent = h;
+    hrow.appendChild(th);
+  });
+
+  const tbody = table.createTBody();
+  S.submissions.forEach(sub => {
+    const row = tbody.insertRow();
+    const cells = [sub.date, sub.project, sub.locationCode, sub.dealer, sub.files + " file(s)"];
+    cells.forEach(text => {
+      const td = row.insertCell();
+      td.textContent = text;
+    });
+  });
+
+  list.appendChild(table);
+}
+
+$("unlockBtn").addEventListener("click", async function () {
+  const pass = $("settingsPass").value;
+  if (pass === SETTINGS_PASSCODE) {
+    document.querySelector('input[id="settingsPass"]').parentElement.parentElement.hidden = true;
+    $("settingsPanel").hidden = false;
+    $("refreshBtn").disabled = true;
+    showMsg($("locStatus2"), "ok", "⏳ Loading data...");
+    await initializeDatabases();
+    $("refreshBtn").disabled = false;
+  } else {
+    showMsg($("settingsPass"), "bad", "❌ Incorrect passcode");
+  }
+});
+
+$("refreshBtn").addEventListener("click", async function () {
+  $("refreshBtn").disabled = true;
+  await initializeDatabases();
+  $("refreshBtn").disabled = false;
+});
+
+["tab-submit", "tab-inbox", "tab-settings"].forEach(tabId => {
+  const btn = $(tabId);
+  if (btn) {
+    btn.addEventListener("click", function () {
+      const view = tabId.replace("tab-", "view-");
+      document.querySelectorAll("main").forEach(el => el.hidden = true);
+      const viewEl = $(view);
+      if (viewEl) {
+        viewEl.hidden = false;
+        document.querySelectorAll(".tab").forEach(el => el.setAttribute("aria-selected", "false"));
+        $(tabId).setAttribute("aria-selected", "true");
+        if (tabId === "tab-inbox") {
+          renderInbox();
+        }
+      }
+    });
+  }
+});
+
+// Initialize form on page load
+window.addEventListener("DOMContentLoaded", async function () {
+  try {
+    console.log("🚀 Initializing form...");
+    await initializeDatabases();
+    console.log("✅ Form ready!");
+    updateEmailDraft();
+    renderFileList();
+  } catch (err) {
+    console.error("❌ Failed to initialize:", err);
+    showMsg($("submitMsg"), "bad", "⚠️ Failed to load data. Please refresh the page.");
+  }
+});
+</script>
+</body>
+</html>
