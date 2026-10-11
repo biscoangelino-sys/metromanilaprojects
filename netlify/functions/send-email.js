@@ -34,7 +34,7 @@ exports.handler = async (event) => {
       };
     }
 
-    // Build SendGrid API request
+    // Build SendGrid API request - CORRECT ORDER: text/plain BEFORE text/html
     const sendgridPayload = {
       personalizations: [
         {
@@ -43,7 +43,7 @@ exports.handler = async (event) => {
         }
       ],
       from: {
-        email: 'biscoangelino@gmail.com',
+        email: 'noreply@metromanilaprojects.com',
         name: 'Metro Manila Project Forms'
       },
       content: [
@@ -59,15 +59,15 @@ exports.handler = async (event) => {
       replyTo: replyTo ? { email: replyTo } : undefined
     };
 
-    // Only include attachments if there are any
-    const attachments = data.attachments || [];
-    if (attachments.length > 0) {
-      sendgridPayload.attachments = attachments;
-    }
-
     // Remove undefined replyTo if not provided
     if (!replyTo) {
       delete sendgridPayload.replyTo;
+    }
+
+    // ONLY include attachments if there are actual attachments
+    const attachments = data.attachments || [];
+    if (attachments.length > 0) {
+      sendgridPayload.attachments = attachments;
     }
 
     console.log('📤 Sending to SendGrid...');
