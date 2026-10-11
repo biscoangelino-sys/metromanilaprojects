@@ -1,8 +1,6 @@
 // Netlify Function: netlify/functions/send-email.js
 // This function securely handles SendGrid API calls from the form
 
-const fetch = require('node-fetch');
-
 exports.handler = async (event) => {
   // Only allow POST requests
   if (event.httpMethod !== 'POST') {
@@ -23,13 +21,4 @@ exports.handler = async (event) => {
       console.error('❌ SENDGRID_API_KEY not configured');
       return {
         statusCode: 500,
-        body: JSON.stringify({ error: 'Email service not configured' })
-      };
-    }
-
-    // Validate required fields
-    const { to, subject, htmlContent, replyTo } = data;
-    if (!to || !subject || !htmlContent) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: 'Missing required fields: to, subject, htmlContent'
+        body:
