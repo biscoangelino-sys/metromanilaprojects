@@ -603,36 +603,42 @@ $("submitBtn").addEventListener("click", async function (e) {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         if (file) {
-          await new Promise((resolve) => {
+          await new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = function (e) {
-              const base64Data = e.target.result.split(',')[1];
-              const isImage = file.type.startsWith("image/");
+              try {
+                const base64Data = e.target.result.split(',')[1];
+                const isImage = file.type.startsWith("image/");
 
-              if (isImage) {
-                // Embed images inline in email
-                inlineAttachments.push({
-                  filename: file.name,
-                  mimeType: file.type,
-                  base64Content: base64Data,
-                  contentId: contentPrefix + "-" + i,
-                  label: label + ` (${i + 1})`,
-                  disposition: 'inline'
-                });
-                inlineCount++;
-              } else {
-                // Send PDFs as downloadable attachments
-                inlineAttachments.push({
-                  filename: file.name,
-                  mimeType: file.type,
-                  base64Content: base64Data,
-                  label: label + ` (${i + 1})`,
-                  disposition: 'attachment'
-                });
-                attachmentCount++;
+                if (isImage) {
+                  // Embed images inline in email
+                  inlineAttachments.push({
+                    filename: file.name,
+                    mimeType: file.type,
+                    base64Content: base64Data,
+                    contentId: contentPrefix + "-" + i,
+                    label: label + ` (${i + 1})`,
+                    disposition: 'inline'
+                  });
+                  inlineCount++;
+                } else {
+                  // Send PDFs as downloadable attachments
+                  inlineAttachments.push({
+                    filename: file.name,
+                    mimeType: file.type,
+                    base64Content: base64Data,
+                    label: label + ` (${i + 1})`,
+                    disposition: 'attachment'
+                  });
+                  attachmentCount++;
+                }
+                resolve();
+              } catch (err) {
+                reject(new Error(`Error processing ${file.name}: ${err.message}`));
               }
-              resolve();
             };
+            reader.onerror = () => reject(new Error(`Failed to read: ${file.name}`));
+            reader.onabort = () => reject(new Error(`Aborted: ${file.name}`));
             reader.readAsDataURL(file);
           });
         }
