@@ -26,7 +26,7 @@ exports.handler = async (event) => {
     }
 
     // Validate required fields
-    const { to, subject, htmlContent, replyTo, inlineAttachments } = data;
+    const { to, subject, htmlContent, replyTo, cc, inlineAttachments } = data;
     if (!to || !subject || !htmlContent) {
       return {
         statusCode: 400,
@@ -34,14 +34,20 @@ exports.handler = async (event) => {
       };
     }
 
+    // Build personalizations with optional CC
+    const personalizations = {
+      to: [{ email: to }],
+      subject: subject
+    };
+
+    // Add CC if provided
+    if (cc) {
+      personalizations.cc = [{ email: cc }];
+    }
+
     // Build SendGrid API request
     const sendgridPayload = {
-      personalizations: [
-        {
-          to: [{ email: to }],
-          subject: subject
-        }
-      ],
+      personalizations: [personalizations],
       from: {
         email: 'biscoangelino@gmail.com',
         name: 'Metro Manila Project Forms'
@@ -78,6 +84,7 @@ exports.handler = async (event) => {
 
     console.log('📤 Sending to SendGrid...');
     console.log('   To:', to);
+    if (cc) console.log('   CC:', cc);
     console.log('   Subject:', subject);
 
     // Call SendGrid API
@@ -110,7 +117,8 @@ exports.handler = async (event) => {
       body: JSON.stringify({
         success: true,
         message: 'Email sent successfully',
-        recipient: to
+        recipient: to,
+        cc: cc || null
       })
     };
 
