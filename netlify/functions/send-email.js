@@ -70,16 +70,22 @@ exports.handler = async (event) => {
       delete sendgridPayload.replyTo;
     }
 
-    // Add inline attachments
+    // Add attachments (both inline images and regular file attachments)
     if (inlineAttachments && inlineAttachments.length > 0) {
-      sendgridPayload.attachments = inlineAttachments.map((att) => ({
-        content: att.base64Content,
-        type: att.mimeType,
-        filename: att.filename,
-        disposition: 'inline',
-        content_id: att.contentId
-      }));
-      console.log('📎 Inline attachments:', sendgridPayload.attachments.length);
+      sendgridPayload.attachments = inlineAttachments.map((att) => {
+        const attachment = {
+          content: att.base64Content,
+          type: att.mimeType,
+          filename: att.filename,
+          disposition: att.disposition || 'attachment'
+        };
+        // Only add content_id for inline images
+        if (att.disposition === 'inline' && att.contentId) {
+          attachment.content_id = att.contentId;
+        }
+        return attachment;
+      });
+      console.log('📎 Attachments:', sendgridPayload.attachments.length);
     }
 
     console.log('📤 Sending to SendGrid...');
