@@ -794,7 +794,7 @@ $("pdfBtn").addEventListener("click", function() {
   if (S.fileAfter.length) fileList += `<p><strong>✅ After Photos:</strong> ${S.fileAfter.map(f => f.name).join(", ")}</p>`;
 
   const pdfHTML = `
-    <h1>Project Work Submission Report</h1>
+    <h1 style="margin-top: 0;">Project Work Submission Report</h1>
     <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
     <h2>Project Details</h2>
     <p><strong>Project:</strong> ${fields.project}</p>
@@ -809,7 +809,7 @@ $("pdfBtn").addEventListener("click", function() {
     <p><strong>Vendor Code:</strong> ${fields.vendorCode}</p>
     <p><strong>Company:</strong> ${fields.vendorCompany}</p>
     <h2>Work Description</h2>
-    <p>${fields.desc.replace(/\n/g, '<br>')}</p>
+    <p style="white-space: pre-wrap;">${fields.desc.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>
     <h2>Uploaded Files</h2>
     <p><strong>Total Files:</strong> ${totalFiles}</p>
     ${fileList}
@@ -818,16 +818,27 @@ $("pdfBtn").addEventListener("click", function() {
   const element = document.createElement("div");
   element.innerHTML = pdfHTML;
   element.style.padding = "20px";
+  element.style.backgroundColor = "white";
+  element.style.color = "black";
+  element.style.fontFamily = "Arial, sans-serif";
+  element.style.fontSize = "12px";
+  element.style.lineHeight = "1.6";
+
+  // Append to body temporarily so html2pdf can render it
+  document.body.appendChild(element);
 
   const opt = {
     margin: 10,
     filename: `WO-${fields.workOrderNumber}-${Date.now()}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2 },
+    html2canvas: { scale: 2, backgroundColor: '#ffffff' },
     jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
   };
 
-  html2pdf().set(opt).from(element).save();
+  html2pdf().set(opt).from(element).save().then(() => {
+    // Remove element after PDF is generated
+    document.body.removeChild(element);
+  });
 });
 
 function renderInbox() {
