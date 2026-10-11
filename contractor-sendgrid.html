@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
 :root {
   --bg: #fef9f6; --paper: #ffffff; --ink: #4a4a4a; --muted: #8a8a8a;
@@ -54,6 +55,8 @@ input:focus, textarea:focus, select:focus { outline: 0; border-color: var(--acce
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn.ghost { background: transparent; color: var(--accent); border-color: var(--accent); }
 .btn.ghost:hover { background: var(--accent-soft); }
+.btn.secondary { background: #6b7280; border-color: #6b7280; }
+.btn.secondary:hover { opacity: 0.9; }
 @media (max-width: 640px) { .btn { padding: 12px 16px; font-size: 15px; min-height: 48px; width: 100%; } }
 .msg { border-radius: 6px; padding: 12px 16px; font-size: 14px; margin-bottom: 12px; }
 .msg.ok { background: var(--ok-soft); color: #2d5a3d; border-left: 4px solid var(--ok); }
@@ -70,6 +73,12 @@ table tr:hover { background: var(--accent-soft); }
 input[type="file"] { cursor: pointer; }
 input[type="file"]::file-selector-button { font-size: 14px; padding: 8px 12px; }
 @media (max-width: 640px) { input[type="file"]::file-selector-button { padding: 10px 16px; font-size: 15px; } }
+.file-list { margin-top: 12px; padding: 12px; background: var(--ok-soft); border-radius: 6px; }
+.file-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.file-item:last-child { border-bottom: none; }
+.file-remove { background: var(--bad); color: white; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 12px; }
+.file-remove:hover { opacity: 0.9; }
+#pdf-content { display: none; }
 </style>
 </head>
 <body>
@@ -124,19 +133,22 @@ input[type="file"]::file-selector-button { font-size: 14px; padding: 8px 12px; }
         <label>Work Completed On <input id="completedDate" type="date" required></label>
         <label>Description of Work Completed <textarea id="desc" placeholder="Describe the work done..." required rows="4"></textarea></label>
 
-        <label>📋 Signed WO Form (PDF or Photo)
-          <input id="fileWO" type="file" accept=".pdf,.png,.jpg,.jpeg">
+        <label>📋 Signed WO Form (PDF or Photo) - Max 5 files
+          <input id="fileWO" type="file" accept=".pdf,.png,.jpg,.jpeg" multiple>
           <small id="fileWOStatus" class="hint"></small>
+          <div id="fileWOList" class="file-list" style="display:none;"></div>
         </label>
 
-        <label>📸 Before Photo
-          <input id="fileBefore" type="file" accept=".png,.jpg,.jpeg">
+        <label>📸 Before Photo - Max 5 files
+          <input id="fileBefore" type="file" accept=".png,.jpg,.jpeg" multiple>
           <small id="fileBeforeStatus" class="hint"></small>
+          <div id="fileBeforeList" class="file-list" style="display:none;"></div>
         </label>
 
-        <label>✅ After Photo
-          <input id="fileAfter" type="file" accept=".png,.jpg,.jpeg">
+        <label>✅ After Photo - Max 5 files
+          <input id="fileAfter" type="file" accept=".png,.jpg,.jpeg" multiple>
           <small id="fileAfterStatus" class="hint"></small>
+          <div id="fileAfterList" class="file-list" style="display:none;"></div>
         </label>
 
         <div id="fileList"></div>
@@ -160,7 +172,10 @@ input[type="file"]::file-selector-button { font-size: 14px; padding: 8px 12px; }
       <fieldset>
         <legend>Submission</legend>
         <div id="submitMsg"></div>
-        <div class="row"><button class="btn" id="submitBtn">📧 Send Email Report</button></div>
+        <div class="row">
+          <button class="btn" id="submitBtn">📧 Send Email Report</button>
+          <button class="btn secondary" id="pdfBtn">📄 Download PDF</button>
+        </div>
       </fieldset>
     </div>
   </main>
@@ -195,12 +210,18 @@ input[type="file"]::file-selector-button { font-size: 14px; padding: 8px 12px; }
   </main>
 </div>
 
+<div id="pdf-content" style="display:none;padding:20px;background:white;color:black;font-family:Arial,sans-serif;">
+  <h1>Project Work Submission Report</h1>
+  <div id="pdf-body"></div>
+</div>
+
 <script>
 const SHEET_ID = "1l9sWCZIqkGNX44dmSrVCdXZTxXgm8NpokmJloJRVPSA";
 const LOCATION_GID = 0;
 const VENDOR_GID = 1684910670;
 const SENDGRID_FUNCTION = "/.netlify/functions/send-email";
 const SETTINGS_PASSCODE = "petron2026";
+const MAX_FILES_PER_FIELD = 5;
 
 const norm = str => String(str || "").toLowerCase().replace(/[^a-z0-9]/g, "").substring(0, 20);
 const $ = id => document.getElementById(id);
@@ -208,7 +229,7 @@ const $ = id => document.getElementById(id);
 let S = {
   locations: [], vendors: [], locMeta: null, venMeta: null,
   loc: { status: "idle" }, ven: { status: "idle" },
-  fileWO: null, fileBefore: null, fileAfter: null,
+  fileWO: [], fileBefore: [], fileAfter: [],
   submissions: []
 };
 
@@ -420,34 +441,40 @@ function showMsg(el, type, text) {
   el.textContent = text;
 }
 
-function renderFileList() {
-  const list = $("fileList");
-  list.textContent = "";
-  const files = [
-    { file: S.fileWO, label: "📋 Signed WO Form" },
-    { file: S.fileBefore, label: "📸 Before Photo" },
-    { file: S.fileAfter, label: "✅ After Photo" }
-  ];
-  const hasFiles = files.some(f => f.file);
-  if (!hasFiles) return;
-
-  const div = document.createElement("div");
-  div.style.cssText = "margin-top:12px;padding:12px;background:var(--ok-soft);border-radius:6px;";
-  const title = document.createElement("small");
-  const fileCount = files.filter(f => f.file).length;
-  title.textContent = "📎 " + fileCount + " file(s) attached:";
-  div.appendChild(title);
-  const ul = document.createElement("ul");
-  ul.style.cssText = "margin:8px 0;padding-left:20px;";
-  files.forEach(({ file, label }) => {
-    if (file) {
-      const li = document.createElement("li");
-      li.textContent = label + " - " + file.name + " (" + Math.round(file.size / 1024) + " KB)";
-      ul.appendChild(li);
-    }
+function renderFileList(fieldId, files, displayId) {
+  const list = $(displayId);
+  list.innerHTML = "";
+  if (files.length === 0) {
+    list.style.display = "none";
+    return;
+  }
+  list.style.display = "block";
+  files.forEach((file, idx) => {
+    const item = document.createElement("div");
+    item.className = "file-item";
+    item.innerHTML = `<span>${file.name} (${Math.round(file.size / 1024)} KB)</span>
+      <button class="file-remove" onclick="removeFile('${fieldId}', ${idx})">Remove</button>`;
+    list.appendChild(item);
   });
-  div.appendChild(ul);
-  list.appendChild(div);
+}
+
+window.removeFile = function(fieldId, idx) {
+  if (fieldId === "WO") S.fileWO.splice(idx, 1);
+  if (fieldId === "Before") S.fileBefore.splice(idx, 1);
+  if (fieldId === "After") S.fileAfter.splice(idx, 1);
+  updateFileDisplay();
+};
+
+function updateFileDisplay() {
+  renderFileList("WO", S.fileWO, "fileWOList");
+  renderFileList("Before", S.fileBefore, "fileBeforeList");
+  renderFileList("After", S.fileAfter, "fileAfterList");
+
+  const total = S.fileWO.length + S.fileBefore.length + S.fileAfter.length;
+  $("fileWOStatus").textContent = S.fileWO.length ? `${S.fileWO.length} file(s)` : "";
+  $("fileBeforeStatus").textContent = S.fileBefore.length ? `${S.fileBefore.length} file(s)` : "";
+  $("fileAfterStatus").textContent = S.fileAfter.length ? `${S.fileAfter.length} file(s)` : "";
+  updateEmailDraft();
 }
 
 function updateEmailDraft() {
@@ -463,7 +490,7 @@ function updateEmailDraft() {
   $("draftProject").textContent = subject;
 
   const desc = $("desc").value || "[No description]";
-  const filesCount = [S.fileWO, S.fileBefore, S.fileAfter].filter(f => f).length;
+  const filesCount = S.fileWO.length + S.fileBefore.length + S.fileAfter.length;
   const body = `Project: ${project}\nLocation: ${locationCode} (${dealer})\nCompleted: ${$("completedDate").value || "N/A"}\nFiles: ${filesCount}\n\n${desc}`;
   $("draftBody").textContent = body;
 }
@@ -471,33 +498,42 @@ function updateEmailDraft() {
 const fileWOEl = $("fileWO");
 if (fileWOEl) {
   fileWOEl.addEventListener("change", function (e) {
-    S.fileWO = e.target.files[0] || null;
-    const statusEl = $("fileWOStatus");
-    if (statusEl) statusEl.textContent = S.fileWO ? "✓ " + S.fileWO.name : "";
-    renderFileList();
-    updateEmailDraft();
+    const newFiles = Array.from(e.target.files || []);
+    if (S.fileWO.length + newFiles.length > MAX_FILES_PER_FIELD) {
+      showMsg($("fileWOStatus"), "warn", `⚠️ Max ${MAX_FILES_PER_FIELD} files allowed`);
+      e.target.value = "";
+      return;
+    }
+    S.fileWO = newFiles;
+    updateFileDisplay();
   });
 }
 
 const fileBeforeEl = $("fileBefore");
 if (fileBeforeEl) {
   fileBeforeEl.addEventListener("change", function (e) {
-    S.fileBefore = e.target.files[0] || null;
-    const statusEl = $("fileBeforeStatus");
-    if (statusEl) statusEl.textContent = S.fileBefore ? "✓ " + S.fileBefore.name : "";
-    renderFileList();
-    updateEmailDraft();
+    const newFiles = Array.from(e.target.files || []);
+    if (S.fileBefore.length + newFiles.length > MAX_FILES_PER_FIELD) {
+      showMsg($("fileBeforeStatus"), "warn", `⚠️ Max ${MAX_FILES_PER_FIELD} files allowed`);
+      e.target.value = "";
+      return;
+    }
+    S.fileBefore = newFiles;
+    updateFileDisplay();
   });
 }
 
 const fileAfterEl = $("fileAfter");
 if (fileAfterEl) {
   fileAfterEl.addEventListener("change", function (e) {
-    S.fileAfter = e.target.files[0] || null;
-    const statusEl = $("fileAfterStatus");
-    if (statusEl) statusEl.textContent = S.fileAfter ? "✓ " + S.fileAfter.name : "";
-    renderFileList();
-    updateEmailDraft();
+    const newFiles = Array.from(e.target.files || []);
+    if (S.fileAfter.length + newFiles.length > MAX_FILES_PER_FIELD) {
+      showMsg($("fileAfterStatus"), "warn", `⚠️ Max ${MAX_FILES_PER_FIELD} files allowed`);
+      e.target.value = "";
+      return;
+    }
+    S.fileAfter = newFiles;
+    updateFileDisplay();
   });
 }
 
@@ -550,35 +586,36 @@ $("submitBtn").addEventListener("click", async function (e) {
   try {
     const subject = "WO: " + fields.workOrderNumber + " | Loc: " + fields.locationCode + " | Project: " + fields.project + " | Dealer: " + fields.dealer + " | Address: " + fields.address;
 
-    // Process files as inline attachments for SendGrid
     const inlineAttachments = [];
     const filesByLabel = [
-      { file: S.fileWO, label: "📋 Signed WO Form", contentId: "wo-form" },
-      { file: S.fileBefore, label: "📸 Before Photo", contentId: "before-photo" },
-      { file: S.fileAfter, label: "✅ After Photo", contentId: "after-photo" }
+      { files: S.fileWO, label: "📋 Signed WO Form", contentPrefix: "wo-form" },
+      { files: S.fileBefore, label: "📸 Before Photo", contentPrefix: "before-photo" },
+      { files: S.fileAfter, label: "✅ After Photo", contentPrefix: "after-photo" }
     ];
 
-    for (const { file, label, contentId } of filesByLabel) {
-      if (file && file.type.startsWith("image/")) {
-        await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = function (e) {
-            const base64Data = e.target.result.split(',')[1]; // Remove data:image/...;base64, prefix
-            inlineAttachments.push({
-              filename: file.name,
-              mimeType: file.type,
-              base64Content: base64Data,
-              contentId: contentId,
-              label: label
-            });
-            resolve();
-          };
-          reader.readAsDataURL(file);
-        });
+    for (const { files, label, contentPrefix } of filesByLabel) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (file && file.type.startsWith("image/")) {
+          await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              const base64Data = e.target.result.split(',')[1];
+              inlineAttachments.push({
+                filename: file.name,
+                mimeType: file.type,
+                base64Content: base64Data,
+                contentId: contentPrefix + "-" + i,
+                label: label + ` (${i + 1})`
+              });
+              resolve();
+            };
+            reader.readAsDataURL(file);
+          });
+        }
       }
     }
 
-    // Build HTML email with image references
     let htmlEmail = `<!DOCTYPE html>
 <html>
 <head>
@@ -629,7 +666,6 @@ $("submitBtn").addEventListener("click", async function (e) {
     <div class="files-section">
       <strong>Attached Files</strong>`;
 
-    // Add images using Content-ID references (cid:)
     inlineAttachments.forEach(({ contentId, label }) => {
       htmlEmail += `<div class="photo-container"><div class="photo-label">${label}</div><img src="cid:${contentId}" alt="${label}" class="photo-img" /></div>`;
     });
@@ -644,7 +680,6 @@ $("submitBtn").addEventListener("click", async function (e) {
 
     showMsg(msg, "ok", "📧 Sending via SendGrid...");
 
-    // Send to Netlify Function with inline attachments
     const response = await fetch(SENDGRID_FUNCTION, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -653,8 +688,8 @@ $("submitBtn").addEventListener("click", async function (e) {
         subject: subject,
         htmlContent: htmlEmail,
         replyTo: fields.vendorEmail,
-        cc: fields.vendorEmail,  // CC the vendor on the email
-        inlineAttachments: inlineAttachments  // Send image data to backend
+        cc: fields.vendorEmail,
+        inlineAttachments: inlineAttachments
       })
     });
 
@@ -679,26 +714,21 @@ $("submitBtn").addEventListener("click", async function (e) {
 
     showMsg(msg, "ok", "✅ Email sent to " + fields._to + "!");
 
-    // Clear form
     $("locationCode").value = "";
     $("vendorCode").value = "";
     $("workOrderNumber").value = "";
     $("project").value = "";
     $("completedDate").value = "";
     $("desc").value = "";
-    S.fileWO = null;
-    S.fileBefore = null;
-    S.fileAfter = null;
+    S.fileWO = [];
+    S.fileBefore = [];
+    S.fileAfter = [];
     $("fileWO").value = "";
     $("fileBefore").value = "";
     $("fileAfter").value = "";
-    $("fileWOStatus").textContent = "";
-    $("fileBeforeStatus").textContent = "";
-    $("fileAfterStatus").textContent = "";
     setAuto(null);
     setContractor(null);
-    renderFileList();
-    updateEmailDraft();
+    updateFileDisplay();
 
   } catch (e) {
     console.error("❌ Error:", e);
@@ -706,6 +736,63 @@ $("submitBtn").addEventListener("click", async function (e) {
   } finally {
     $("submitBtn").disabled = false;
   }
+});
+
+$("pdfBtn").addEventListener("click", function() {
+  const fields = {
+    locationCode: $("locationCode").value,
+    dealer: $("dealer").value,
+    address: $("address").value,
+    workOrderNumber: $("workOrderNumber").value,
+    project: $("project").value,
+    completedDate: $("completedDate").value,
+    desc: $("desc").value,
+    areaEngineer: $("areaEngineer").value,
+    vendorCode: $("vendorCode").value,
+    vendorCompany: $("vendorCompany").value
+  };
+
+  const totalFiles = S.fileWO.length + S.fileBefore.length + S.fileAfter.length;
+  let fileList = "";
+  if (S.fileWO.length) fileList += `<p><strong>📋 WO Forms:</strong> ${S.fileWO.map(f => f.name).join(", ")}</p>`;
+  if (S.fileBefore.length) fileList += `<p><strong>📸 Before Photos:</strong> ${S.fileBefore.map(f => f.name).join(", ")}</p>`;
+  if (S.fileAfter.length) fileList += `<p><strong>✅ After Photos:</strong> ${S.fileAfter.map(f => f.name).join(", ")}</p>`;
+
+  const pdfHTML = `
+    <h1>Project Work Submission Report</h1>
+    <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
+    <h2>Project Details</h2>
+    <p><strong>Project:</strong> ${fields.project}</p>
+    <p><strong>WO #:</strong> ${fields.workOrderNumber}</p>
+    <p><strong>Completed:</strong> ${fields.completedDate}</p>
+    <h2>Location Information</h2>
+    <p><strong>Location Code:</strong> ${fields.locationCode}</p>
+    <p><strong>Dealer:</strong> ${fields.dealer}</p>
+    <p><strong>Address:</strong> ${fields.address}</p>
+    <p><strong>Area Engineer:</strong> ${fields.areaEngineer}</p>
+    <h2>Contractor Information</h2>
+    <p><strong>Vendor Code:</strong> ${fields.vendorCode}</p>
+    <p><strong>Company:</strong> ${fields.vendorCompany}</p>
+    <h2>Work Description</h2>
+    <p>${fields.desc.replace(/\n/g, '<br>')}</p>
+    <h2>Uploaded Files</h2>
+    <p><strong>Total Files:</strong> ${totalFiles}</p>
+    ${fileList}
+  `;
+
+  const element = document.createElement("div");
+  element.innerHTML = pdfHTML;
+  element.style.padding = "20px";
+
+  const opt = {
+    margin: 10,
+    filename: `WO-${fields.workOrderNumber}-${Date.now()}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+  };
+
+  html2pdf().set(opt).from(element).save();
 });
 
 function renderInbox() {
@@ -782,7 +869,6 @@ window.addEventListener("DOMContentLoaded", async function () {
     await initializeDatabases();
     console.log("✅ Form ready!");
     updateEmailDraft();
-    renderFileList();
   } catch (err) {
     console.error("❌ Failed to initialize:", err);
     showMsg($("submitMsg"), "bad", "⚠️ Failed to load data.");
