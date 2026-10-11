@@ -35,8 +35,6 @@ exports.handler = async (event) => {
     }
 
     // Build SendGrid API request
-    const attachments = data.attachments || [];
-
     const sendgridPayload = {
       personalizations: [
         {
@@ -58,9 +56,14 @@ exports.handler = async (event) => {
           value: data.textContent || 'See HTML content'
         }
       ],
-      replyTo: replyTo ? { email: replyTo } : undefined,
-      attachments: attachments
+      replyTo: replyTo ? { email: replyTo } : undefined
     };
+
+    // Only include attachments if there are any
+    const attachments = data.attachments || [];
+    if (attachments.length > 0) {
+      sendgridPayload.attachments = attachments;
+    }
 
     // Remove undefined replyTo if not provided
     if (!replyTo) {
