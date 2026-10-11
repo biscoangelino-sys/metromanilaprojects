@@ -21,4 +21,99 @@ exports.handler = async (event) => {
       console.error('❌ SENDGRID_API_KEY not configured');
       return {
         statusCode: 500,
-        body:
+        body: JSON.stringify({ error: 'Email service not configured' })
+      };
+    }
+
+    // Validate required fields
+    const { to, subject, htmlContent, replyTo } = data;
+    if (!to || !subject || !htmlContent) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Missing required fields: to, subject, htmlContent' })
+      };
+    }
+
+    // Build SendGrid API request
+    const attachments = data.attachments || [];
+
+    const sendgridPayload = {
+      personalizations: [
+        {
+          to: [{ email: to }],
+          subject: subject
+        }
+      ],
+      from: {
+        email: 'biscoangelino@gmail.com',
+        name: 'Metro Manila Project Forms'
+      },
+      content: [
+        {
+          type: 'text/html',
+          value: htmlContent
+        },
+        {
+          type: 'text/plain',
+          value: data.textContent || 'See HTML content'
+        }
+      ],
+      replyTo: replyTo ? { email: replyTo } : undefined,
+      attachments: attachments
+    };
+
+    // Remove undefined replyTo if not provided
+    if (!replyTo) {
+      delete sendgridPayload.replyTo;
+    }
+
+    console.log('📤 Sending to SendGrid...');
+    console.log('   To:', to);
+    console.log('   Subject:', subject);
+    console.log('   Attachments:', attachments.length);
+
+    // Call SendGrid API (using global fetch available in Node.js 18+)
+    const sendgridResponse = await fetch('https://api.sendgrid.com/v3/mail/send', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${sendgridApiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(sendgridPayload)
+    });
+
+    console.log('📨 SendGrid Response Status:', sendgridResponse.status);
+
+    if (!sendgridResponse.ok) {
+      const errorText = await sendgridResponse.text();
+      console.error('❌ SendGrid Error:', sendgridResponse.status, errorText);
+      return {
+        statusCode: sendgridResponse.status,
+        body: JSON.stringify({
+          error: 'SendGrid API error',
+          details: errorText
+        })
+      };
+    }
+
+    console.log('✅ Email sent successfully via SendGrid');
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        success: true,
+        message: 'Email sent successfully',
+        recipient: to
+      })
+    };
+
+  } catch (error) {
+    console.error('❌ Function Error:', error.message);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        error: 'Internal server error',
+        details: error.message
+      })
+    };
+  }
+};
