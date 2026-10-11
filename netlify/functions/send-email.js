@@ -49,7 +49,7 @@ exports.handler = async (event) => {
     const sendgridPayload = {
       personalizations: [personalizations],
       from: {
-        email: 'biscoangelino@gmail.com',
+        email: 'metromanilaprojectforms@gmail.com',
         name: 'Metro Manila Project Forms'
       },
       content: [
