@@ -504,8 +504,9 @@ if (fileWOEl) {
       e.target.value = "";
       return;
     }
-    S.fileWO = newFiles;
+    S.fileWO.push(...newFiles);
     updateFileDisplay();
+    e.target.value = "";
   });
 }
 
@@ -518,8 +519,9 @@ if (fileBeforeEl) {
       e.target.value = "";
       return;
     }
-    S.fileBefore = newFiles;
+    S.fileBefore.push(...newFiles);
     updateFileDisplay();
+    e.target.value = "";
   });
 }
 
@@ -532,8 +534,9 @@ if (fileAfterEl) {
       e.target.value = "";
       return;
     }
-    S.fileAfter = newFiles;
+    S.fileAfter.push(...newFiles);
     updateFileDisplay();
+    e.target.value = "";
   });
 }
 
@@ -593,21 +596,41 @@ $("submitBtn").addEventListener("click", async function (e) {
       { files: S.fileAfter, label: "✅ After Photo", contentPrefix: "after-photo" }
     ];
 
+    let inlineCount = 0;
+    let attachmentCount = 0;
+
     for (const { files, label, contentPrefix } of filesByLabel) {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        if (file && file.type.startsWith("image/")) {
+        if (file) {
           await new Promise((resolve) => {
             const reader = new FileReader();
             reader.onload = function (e) {
               const base64Data = e.target.result.split(',')[1];
-              inlineAttachments.push({
-                filename: file.name,
-                mimeType: file.type,
-                base64Content: base64Data,
-                contentId: contentPrefix + "-" + i,
-                label: label + ` (${i + 1})`
-              });
+              const isImage = file.type.startsWith("image/");
+
+              if (isImage) {
+                // Embed images inline in email
+                inlineAttachments.push({
+                  filename: file.name,
+                  mimeType: file.type,
+                  base64Content: base64Data,
+                  contentId: contentPrefix + "-" + i,
+                  label: label + ` (${i + 1})`,
+                  disposition: 'inline'
+                });
+                inlineCount++;
+              } else {
+                // Send PDFs as downloadable attachments
+                inlineAttachments.push({
+                  filename: file.name,
+                  mimeType: file.type,
+                  base64Content: base64Data,
+                  label: label + ` (${i + 1})`,
+                  disposition: 'attachment'
+                });
+                attachmentCount++;
+              }
               resolve();
             };
             reader.readAsDataURL(file);
@@ -664,10 +687,16 @@ $("submitBtn").addEventListener("click", async function (e) {
     </div>
     <div class="description-box"><strong>Work Description</strong>\n\n${fields.desc.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
     <div class="files-section">
-      <strong>Attached Files</strong>`;
+      <strong>Attached Files (${inlineAttachments.length})</strong>`;
 
-    inlineAttachments.forEach(({ contentId, label }) => {
+    // Add inline images
+    inlineAttachments.filter(att => att.disposition === 'inline').forEach(({ contentId, label }) => {
       htmlEmail += `<div class="photo-container"><div class="photo-label">${label}</div><img src="cid:${contentId}" alt="${label}" class="photo-img" /></div>`;
+    });
+
+    // Add PDF file references
+    inlineAttachments.filter(att => att.disposition === 'attachment').forEach(({ label }) => {
+      htmlEmail += `<div style="margin: 10px 0; padding: 8px; background: #fff3cd; border-radius: 4px;"><span style="font-size: 12px;">📎 ${label}</span></div>`;
     });
 
     htmlEmail += `
