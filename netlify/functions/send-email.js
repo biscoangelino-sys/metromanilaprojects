@@ -48,12 +48,12 @@ exports.handler = async (event) => {
       },
       content: [
         {
-          type: 'text/html',
-          value: htmlContent
-        },
-        {
           type: 'text/plain',
           value: data.textContent || 'See HTML content'
+        },
+        {
+          type: 'text/html',
+          value: htmlContent
         }
       ],
       replyTo: replyTo ? { email: replyTo } : undefined
